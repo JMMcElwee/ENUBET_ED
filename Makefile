@@ -13,7 +13,7 @@ TARGET = EventDisplay
 LINKDEF = $(TARGET)LinkDef.h
 
 DICT_CXX = $(TARGET)Dict.cxx
-                                                         
+
 H_EXT = hh
 DEPS= $(shell find $(INCDIR) -type f -name *.$(H_EXT))
 _DEPS = $(patsubst $(INCDIR)/%,%,$(DEPS))
@@ -34,7 +34,7 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.cc $(DEPS)
 	$(CXX) -c -o $@ $< $(CXXFLAGS)
 
 $(TARGET): $(OBJ) lib/$(DICT_CXX)
-	 $(CXX) $(CXXFLAGS) $(LDFLAGS) $(LIBS) $^ -o $@
+	 $(CXX)  $(CXXFLAGS) $(LDFLAGS) $(LIBS) $^ -o $@
 
 .PHONY: clean
 

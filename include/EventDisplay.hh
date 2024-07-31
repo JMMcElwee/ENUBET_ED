@@ -22,6 +22,9 @@
 #include <TGButton.h>
 #include <TGFrame.h>
 #include <TRootEmbeddedCanvas.h>
+#include <TGNumberEntry.h>
+
+#include "EDHist.hh"
 
 
 class EventDisplay : public TGMainFrame {
@@ -30,6 +33,10 @@ class EventDisplay : public TGMainFrame {
 
   // Canvas to print plots on
   TRootEmbeddedCanvas *fEcanvas;
+
+  TGNumberEntry *runNumber;
+
+  int fRunNumber = 1477;
 
 public:
 
@@ -40,6 +47,7 @@ public:
   // Methods 
   void DoDraw();
   void DoWrite();
+  void DoSetRun();
 
 
   ClassDef(EventDisplay,0)

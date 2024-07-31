@@ -34,6 +34,12 @@ EventDisplay::EventDisplay(const TGWindow *p,UInt_t w,UInt_t h)
                                         "gApplication->Terminate(0)");
   leftframe->AddFrame(exit, new TGLayoutHints(kLHintsCenterX,3,3,3,3));
 
+  TGNumberEntry *runNumber = new TGNumberEntry(leftframe, 0, 9, 9999, TGNumberFormat::kNESInteger);
+  runNumber->Connect("ValueSet(Long_t)", "EventDisplay", this, "DoSetRun()");
+  (runNumber->GetNumberEntry())->Connect("ReturnPressed()", "EventDisplay", this,
+                                        "DoSetRun()");
+  leftframe->AddFrame(runNumber);
+
   // Create canvas widgets
   fEcanvas = new TRootEmbeddedCanvas("Ecanvas",rightframe,500,500);
   rightframe->AddFrame(fEcanvas, new TGLayoutHints(kLHintsExpandX|kLHintsExpandY,3,3,3,3));
@@ -54,17 +60,25 @@ EventDisplay::EventDisplay(const TGWindow *p,UInt_t w,UInt_t h)
 }
 
 void EventDisplay::DoDraw() {
-  // Draws function graphics in randomly chosen interval
-  TF1 *f1 = new TF1("f1","sin(x)/x",0,gRandom->Rndm()*10);
-  f1->SetLineWidth(3);
-  f1->Draw();
+
+  EDHist *temp = new EDHist("/Users/jmcelwee/Documents/testbeam2023/data/run361477.root",
+                            "t", 8, 60);
+  temp->SetBranches();
+  temp->LoadMap();
+  temp->FillHist();
+
+
   TCanvas *fCanvas = fEcanvas->GetCanvas();
   fCanvas->cd();
+  gPad->SetPhi(-30);
+  temp->GetHist()->Draw("BOX2");
   fCanvas->Update();
 }
 
-void EventDisplay::DoWrite() {
-  std::cout << "something as a quick test" << std::endl;
+void EventDisplay::DoSetRun() {
+  int temporary = runNumber->GetNumberEntry()->GetIntNumber();  
+  std::cout << "Something or other " << temporary << std::endl;
+
 }
 
 EventDisplay::~EventDisplay() {

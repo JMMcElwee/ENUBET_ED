@@ -1,0 +1,9 @@
+EventDisplay
+
+EventDisplayDict*
+*.pcm
+*.cxx
+*.o
+*~
+*.so
+.DS_Store
