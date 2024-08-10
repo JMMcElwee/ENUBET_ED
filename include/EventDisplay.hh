@@ -12,17 +12,26 @@
 #ifndef EVENTDISPLAY_HH
 #define EVENTDISPLAY_HH
 
+#include <string>
+
 // Regular ROOT information
 #include <TCanvas.h>
 #include <TF1.h>
+#include <TH3D.h>
 
 // GUI Specific
 #include <TGClient.h>
 #include <TRandom.h>
-#include <TGButton.h>
+
 #include <TGFrame.h>
+#include <TGLabel.h>
+#include <TGButtonGroup.h>
+#include <TGButton.h>
 #include <TRootEmbeddedCanvas.h>
+
+#include <TGButton.h>
 #include <TGNumberEntry.h>
+
 
 #include "EDHist.hh"
 
@@ -33,10 +42,18 @@ class EventDisplay : public TGMainFrame {
 
   // Canvas to print plots on
   TRootEmbeddedCanvas *fEcanvas;
+  TRootEmbeddedCanvas *fCherCanvas;
 
-  TGNumberEntry *runNumber;
+  TGTextEntry   *fDatDir;
+  TGTextEntry   *fRunPre;
+  TGNumberEntry *fNRun;
 
-  int fRunNumber = 1477;
+  bool fIsDrawn = false;
+  TH3D *fHist3D = new TH3D();
+
+  std::string iFile;
+  std::string iPrefix = "run36";
+
 
 public:
 
@@ -47,7 +64,8 @@ public:
   // Methods 
   void DoDraw();
   void DoWrite();
-  void DoSetRun();
+  void Do2D(Int_t id);
+
 
 
   ClassDef(EventDisplay,0)

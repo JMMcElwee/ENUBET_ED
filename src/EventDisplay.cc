@@ -17,33 +17,90 @@ EventDisplay::EventDisplay(const TGWindow *p,UInt_t w,UInt_t h)
   : TGMainFrame(p,w,h,kHorizontalFrame) {
  
   // Create a horizontal frame widget with buttons
-  TGVerticalFrame *leftframe = new TGVerticalFrame(this,100,500,kLHintsLeft|kLHintsCenterY);
-  TGVerticalFrame *rightframe = new TGVerticalFrame(this,500,500,kLHintsRight | kLHintsExpandX | kLHintsExpandY);
+  TGVerticalFrame *leftframe = new TGVerticalFrame(this, 400, 600, kLHintsLeft | kLHintsCenterY);
+  TGVerticalFrame *rightframe = new TGVerticalFrame(this, 600, 600, kLHintsRight | kLHintsExpandX | kLHintsExpandY);
 
   AddFrame(leftframe, new TGLayoutHints(kLHintsLeft | kFixedWidth ));
   AddFrame(rightframe,new TGLayoutHints(kLHintsExpandX | kLHintsExpandY));
 
+  // --- Run information button group ---- 
+  TGVButtonGroup *fRunInfo = new TGVButtonGroup(leftframe, "Run Information");
 
+  // Data Directory
+  TGLabel *lDatDir = new TGLabel(fRunInfo, "Directory");
+  fRunInfo->AddFrame(lDatDir, new TGLayoutHints(kLHintsLeft));
+
+  fDatDir = new TGTextEntry(fRunInfo);
+  fRunInfo->AddFrame(fDatDir, new TGLayoutHints(kLHintsCenterX | kLHintsExpandX));
+  fDatDir->SetText("/Users/jmcelwee/Documents/testbeam2023/data/");
+
+
+  // Run Prefix
+  TGHorizontalFrame *pHoriz = new TGHorizontalFrame(fRunInfo, 400, 50, kLHintsCenterX | kLHintsBottom);
+  fRunInfo->AddFrame(pHoriz, new TGLayoutHints(kLHintsExpandX | kLHintsCenterX));
+
+  TGLabel *lRunPre = new TGLabel(pHoriz, "Prefix        ");
+  pHoriz->AddFrame(lRunPre, new TGLayoutHints(kLHintsCenterY));
+
+  fRunPre = new TGTextEntry(pHoriz);
+  pHoriz->AddFrame(fRunPre, new TGLayoutHints(kLHintsCenterY | kLHintsRight));
+  fRunPre->SetText("run36");
+
+
+  // Run Number 
+  TGHorizontalFrame *rBottom = new TGHorizontalFrame(fRunInfo, 300, 50, kLHintsCenterX | kLHintsBottom);
+  fRunInfo->AddFrame(rBottom, new TGLayoutHints(kLHintsExpandX | kLHintsCenterX));
+
+  TGLabel *lNRun = new TGLabel(rBottom, "Number");
+  rBottom->AddFrame(lNRun, new TGLayoutHints(kLHintsCenterY));
+
+  fNRun = new TGNumberEntry(rBottom);
+  rBottom->AddFrame(fNRun, new TGLayoutHints(kLHintsCenterY | kLHintsRight));
+  fNRun->SetText("1684");
+
+
+  fRunInfo->Show();
+  leftframe->AddFrame(fRunInfo, new TGLayoutHints(kLHintsCenterX | kLHintsExpandX));
+  // -------------------------------------
+
+
+  // ---- Event Display Selection --------
+  TGButtonGroup *fDimension = new TGButtonGroup(leftframe, "Dimension");
+
+  new TGRadioButton(fDimension, "2D Phi-R", 1);
+  new TGRadioButton(fDimension, "2D Phi-Z", 2);
+  new TGRadioButton(fDimension, "2D Z-R", 3);
+  new TGRadioButton(fDimension, "3D", 0);
+  fDimension->SetButton(0); 
+  fDimension->Connect("Pressed(Int_t)", "EventDisplay", this,
+                       "Do2D(Int_t)");
+
+  fDimension->Show();
+  leftframe->AddFrame(fDimension, new TGLayoutHints(kLHintsCenterX | kLHintsExpandX));
+  // -------------------------------------
+
+
+  // Draw button
   TGTextButton *draw = new TGTextButton(leftframe,"&Draw");
   draw->Connect("Clicked()","EventDisplay",this,"DoDraw()");
   leftframe->AddFrame(draw, new TGLayoutHints(kLHintsCenterX,3,3,3,3));
 
  
-
+  // Exit button
   TGTextButton *exit = new TGTextButton(leftframe,"&Exit",
                                         "gApplication->Terminate(0)");
   leftframe->AddFrame(exit, new TGLayoutHints(kLHintsCenterX,3,3,3,3));
 
-  TGNumberEntry *runNumber = new TGNumberEntry(leftframe, 0, 9, 9999, TGNumberFormat::kNESInteger);
-  runNumber->Connect("ValueSet(Long_t)", "EventDisplay", this, "DoSetRun()");
-  (runNumber->GetNumberEntry())->Connect("ReturnPressed()", "EventDisplay", this,
-                                        "DoSetRun()");
-  leftframe->AddFrame(runNumber);
+
 
   // Create canvas widgets
-  fEcanvas = new TRootEmbeddedCanvas("Ecanvas",rightframe,500,500);
+  fEcanvas = new TRootEmbeddedCanvas("Ecanvas",rightframe,600,600);
   rightframe->AddFrame(fEcanvas, new TGLayoutHints(kLHintsExpandX|kLHintsExpandY,3,3,3,3));
 
+
+  // Cherenkov Canvas 
+  fCherCanvas = new TRootEmbeddedCanvas("CherCanvas",leftframe,300,300);
+  leftframe->AddFrame(fCherCanvas, new TGLayoutHints(kLHintsBottom | kLHintsRight));
 
 
   // Set a name to the main frame
@@ -53,31 +110,67 @@ EventDisplay::EventDisplay(const TGWindow *p,UInt_t w,UInt_t h)
   MapSubwindows();
 
   // Initialize the layout algorithm
-  Resize(GetDefaultSize());
+  //Resize(GetDefaultSize());
+  Resize();
 
   // Map main frame
   MapWindow();
+
 }
 
 void EventDisplay::DoDraw() {
 
-  EDHist *temp = new EDHist("/Users/jmcelwee/Documents/testbeam2023/data/run361477.root",
+  //iFile = iDirectory + iPrefix + std::to_string(fNRun->GetIntNumber()) + ".root";
+  iFile = fDatDir->GetText() + iPrefix
+        + std::to_string(fNRun->GetIntNumber()) + ".root";
+  std::cout << "The current file is: " << iFile << std::endl;
+
+
+  EDHist *temp = new EDHist(iFile.c_str(),
                             "t", 8, 60);
   temp->SetBranches();
   temp->LoadMap();
   temp->FillHist();
-
+  temp->FillCherenkov();
 
   TCanvas *fCanvas = fEcanvas->GetCanvas();
   fCanvas->cd();
   gPad->SetPhi(-30);
-  temp->GetHist()->Draw("BOX2");
+  temp->GetED()->Draw("BOX2");
   fCanvas->Update();
+  fIsDrawn = true;
+  temp->GetED()->Copy(*fHist3D);
+
+
+  fCherCanvas->GetCanvas()->cd();
+  fCherCanvas->GetCanvas()->SetLogz(1);
+  gPad->SetTopMargin(0.04);
+  gPad->SetLeftMargin(0.12);
+  temp->GetCher()->Draw("COLZ");
+
+  gStyle->SetOptStat(0);
+  //gStyle->SetPalette(kLake);
+  fCherCanvas->GetCanvas()->Update();
+
 }
 
-void EventDisplay::DoSetRun() {
-  int temporary = runNumber->GetNumberEntry()->GetIntNumber();  
-  std::cout << "Something or other " << temporary << std::endl;
+void EventDisplay::Do2D(Int_t id) {
+
+  fEcanvas->GetCanvas()->cd();
+
+  if (fIsDrawn) 
+  {
+    if (id == 0) 
+      fHist3D->Draw("BOX2");
+    else if (id == 1)
+      fHist3D->Project3D("zy")->Draw("COLZ");
+    else if (id == 2)
+      fHist3D->Project3D("xy")->Draw("COLZ");
+    else if (id == 3)
+      fHist3D->Project3D("zx")->Draw("COLZ");
+  }
+
+  fEcanvas->GetCanvas()->Update();
 
 }
 

@@ -23,8 +23,9 @@
 #include "TCanvas.h"
 #include "TAxis.h"
 
-#include "TH3D.h"
 #include "TH1D.h"
+#include "TH2D.h"
+#include "TH3D.h"
 
 #include "EDMapping.hh"
 
@@ -47,6 +48,7 @@ protected:
     // This is not the best way to do 
     // it, but will have to do for now
     short m_HG[10*60], m_LG[10*60];
+    UShort_t digiPH[8], digiTime[8];
 
     std::string m_dir = "/Users/jmcelwee/Documents/testbeam2023/data/";
     std::string m_mapDir = "/Users/jmcelwee/Documents/testbeam2023/tools/TestBeam23/Mapping/";
@@ -56,6 +58,7 @@ protected:
     std::map<std::vector<int>, std::vector<int>> m_coordMap;
 
     TH3D *event_display = new TH3D();
+    TH2D *cherPH = new TH2D();
 
 
 public:
@@ -72,12 +75,14 @@ public:
     void LoadMap();
 
     void FillHist();
+    void FillCherenkov();
 
     void Events3D(const std::vector<THV> &hist_lg, const std::vector<THV> &hist_hg);
 
 
     // Access Function
-    TH3D *GetHist() { return event_display; };
+    TH2D *GetCher() { return cherPH; };
+    TH3D *GetED() { return event_display; };
 
 };
 

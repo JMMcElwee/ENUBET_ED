@@ -73,6 +73,9 @@ void EDHist::SetBranches()
 {
   m_curTree->SetBranchAddress("fersLG",m_LG); // Same as &fLG[0]                                     
   m_curTree->SetBranchAddress("fersHG",m_HG);
+
+  m_curTree->SetBranchAddress("digiPH", &digiPH[0]);
+  m_curTree->SetBranchAddress("digiTime", &digiTime[0]);
 }
 // - - - - - - - - - - - - - - - - - - - - 
 
@@ -192,17 +195,26 @@ void EDHist::FillHist()
     evDispC.SaveAs(_saving.c_str());
     std::cout << "\033[34;1m[INFO]\033[0m Saving plot as:\n\t" << _saving << std::endl;
 
-   //Events3D(hist_lg, hist_hg);
-
 }
 // - - - - - - - - - - - - - - - - - - - - 
 
 
 // - - - - - - - - - - - - - - - - - - - - 
-//void EDHist::Events3D(const std::vector<THV> &hist_lg, const std::vector<THV> &hist_hg)
-//{
+void EDHist::FillCherenkov()
+{
 
-//}
+    TH2D *cherPH_temp = new TH2D("CherPH",";Cherenkov 1 Pulse Amplitude [ADC Counts]; Cherenkov 2 Pulse Amplitude [ADC Counts]",
+                            100, 0, 8000, 100, 0, 8000);
+    int phCut[2] = {800, 1400};
+
+    for (int evnt = 0; evnt < m_curTree->GetEntries(); evnt++){
+        m_curTree->GetEntry(evnt);
+        cherPH_temp->Fill(digiPH[1],digiPH[2]);
+    }
+
+    cherPH_temp->Copy(*cherPH);
+
+}
 // - - - - - - - - - - - - - - - - - - - - 
 
 
