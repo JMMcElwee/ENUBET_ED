@@ -18,6 +18,7 @@
 #include <TCanvas.h>
 #include <TF1.h>
 #include <TH3D.h>
+#include <TLine.h>
 
 // GUI Specific
 #include <TGClient.h>
@@ -26,7 +27,6 @@
 #include <TGFrame.h>
 #include <TGLabel.h>
 #include <TGButtonGroup.h>
-#include <TGButton.h>
 #include <TRootEmbeddedCanvas.h>
 
 #include <TGButton.h>
@@ -44,15 +44,25 @@ class EventDisplay : public TGMainFrame {
   TRootEmbeddedCanvas *fEcanvas;
   TRootEmbeddedCanvas *fCherCanvas;
 
+  // Run information
   TGTextEntry   *fDatDir;
   TGTextEntry   *fRunPre;
   TGNumberEntry *fNRun;
 
+  // Event display
   bool fIsDrawn = false;
   TH3D *fHist3D = new TH3D();
+  TH2D *fCherHist[3] = {nullptr};
+  TLine *fCherLine[2] = {nullptr};
+
+  // Cherenkov info
+  TGNumberEntry *fCherCuts[2];
+  TGCheckButton *fCherShow;
+
+
+
 
   std::string iFile;
-  std::string iPrefix = "run36";
 
 
 public:
@@ -61,10 +71,13 @@ public:
   EventDisplay(const TGWindow *p,UInt_t w,UInt_t h);
   virtual ~EventDisplay();
 
-  // Methods 
+  // ---- Methods ----
   void DoDraw();
   void DoWrite();
   void Do2D(Int_t id);
+
+  void ShowCherenkov(Bool_t bShow);
+  void SelectCherenkov(Int_t id);
 
 
 

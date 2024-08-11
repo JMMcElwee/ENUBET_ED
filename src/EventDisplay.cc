@@ -80,6 +80,46 @@ EventDisplay::EventDisplay(const TGWindow *p,UInt_t w,UInt_t h)
   // -------------------------------------
 
 
+
+  // ---- Cherenkov information ----------
+  TGHButtonGroup *fCherenkov = new TGHButtonGroup(leftframe, "Cherenkov");
+
+  TGVerticalFrame *fCherCutFrame = new TGVerticalFrame(fCherenkov, 150, 200, kLHintsExpandX | kLHintsExpandY);
+  TGVButtonGroup *fCherSelFrame = new TGVButtonGroup(fCherenkov);
+  fCherenkov->AddFrame(fCherCutFrame, new TGLayoutHints(kLHintsLeft | kLHintsExpandX));
+  fCherenkov->AddFrame(fCherSelFrame, new TGLayoutHints(kLHintsLeft | kLHintsExpandX));
+
+  // Show Cherenkov
+  fCherShow = new TGCheckButton(fCherCutFrame, "Show cuts");
+  fCherCutFrame->AddFrame(fCherShow, new TGLayoutHints(kLHintsLeft));
+  // Check out this bottom line, interesting!
+  //->Connect("Toggled(Bool_t)", "TGButton", fButton, "SetEnabled(Bool_t)");
+  fCherShow->Connect("Toggled(Bool_t)", "EventDisplay", this, "ShowCherenkov(Bool_t)");
+
+  // Cuts
+  TGLabel *lCherCuts = new TGLabel(fCherCutFrame, "Cuts 1/2");
+  fCherCutFrame->AddFrame(lCherCuts, new TGLayoutHints(kLHintsLeft));
+
+  fCherCuts[0] = new TGNumberEntry(fCherCutFrame);
+  fCherCutFrame->AddFrame(fCherCuts[0], new TGLayoutHints(kLHintsLeft));
+  fCherCuts[0]->SetText("800");
+
+  fCherCuts[1] = new TGNumberEntry(fCherCutFrame);
+  fCherCutFrame->AddFrame(fCherCuts[1], new TGLayoutHints(kLHintsLeft));
+  fCherCuts[1]->SetText("1400");
+
+  // Select Cherenkov view 
+  new TGRadioButton(fCherSelFrame, "PH1:PH2", 0);
+  new TGRadioButton(fCherSelFrame, "PH1:T1", 1);
+  new TGRadioButton(fCherSelFrame, "PH2:T2", 2);
+  fCherSelFrame->SetButton(0); 
+  fCherSelFrame->Connect("Pressed(Int_t)", "EventDisplay", this,
+                         "SelectCherenkov(Int_t)");
+
+  fCherenkov->Show();
+  leftframe->AddFrame(fCherenkov, new TGLayoutHints(kLHintsCenterX | kLHintsExpandX));
+  // -------------------------------------
+
   // Draw button
   TGTextButton *draw = new TGTextButton(leftframe,"&Draw");
   draw->Connect("Clicked()","EventDisplay",this,"DoDraw()");
@@ -120,14 +160,13 @@ EventDisplay::EventDisplay(const TGWindow *p,UInt_t w,UInt_t h)
 
 void EventDisplay::DoDraw() {
 
-  //iFile = iDirectory + iPrefix + std::to_string(fNRun->GetIntNumber()) + ".root";
-  iFile = fDatDir->GetText() + iPrefix
+  // Cast GetText to string in order to add together
+  iFile = (std::string)fDatDir->GetText() + (std::string)(fRunPre->GetText())
         + std::to_string(fNRun->GetIntNumber()) + ".root";
-  std::cout << "The current file is: " << iFile << std::endl;
+  std::cout << H_INFO << "The current file is: " << iFile << std::endl;
 
 
-  EDHist *temp = new EDHist(iFile.c_str(),
-                            "t", 8, 60);
+  EDHist *temp = new EDHist(iFile.c_str(), "t", 8, 60);
   temp->SetBranches();
   temp->LoadMap();
   temp->FillHist();
@@ -146,7 +185,10 @@ void EventDisplay::DoDraw() {
   fCherCanvas->GetCanvas()->SetLogz(1);
   gPad->SetTopMargin(0.04);
   gPad->SetLeftMargin(0.12);
-  temp->GetCher()->Draw("COLZ");
+  temp->GetCher("PHPH")->Draw("COLZ");
+//  temp->GetCher("PHPH")->Copy(fCherHist[0]);
+//  temp->GetCher("PHT1")->Copy(*fCherHist[1]);
+//  temp->GetCher("PHT2")->Copy(*fCherHist[2]);
 
   gStyle->SetOptStat(0);
   //gStyle->SetPalette(kLake);
@@ -173,6 +215,51 @@ void EventDisplay::Do2D(Int_t id) {
   fEcanvas->GetCanvas()->Update();
 
 }
+
+void EventDisplay::ShowCherenkov(Bool_t bShow)
+{
+  fCherCanvas->GetCanvas()->cd();
+
+  if (bShow)
+  {
+    fCherLine[0] = new TLine(fCherCuts[0]->GetIntNumber(), 0, 
+                             fCherCuts[0]->GetIntNumber(), 8000);
+    fCherLine[0]->SetLineColor(kRed);
+    fCherLine[0]->SetLineWidth(2);
+
+    fCherLine[1] = new TLine(0,    fCherCuts[1]->GetIntNumber(), 
+                             8000, fCherCuts[1]->GetIntNumber());
+    fCherLine[1]->SetLineColor(kRed);
+    fCherLine[1]->SetLineWidth(2);
+
+    fCherLine[0]->Draw("SAME");
+    fCherLine[1]->Draw("SAME");
+  }
+  else 
+  {
+    fCherCanvas->GetCanvas()->GetListOfPrimitives()->Remove(fCherLine[0]);
+    fCherCanvas->GetCanvas()->GetListOfPrimitives()->Remove(fCherLine[1]);
+    fCherCanvas->GetCanvas()->Modified();
+  }
+
+  fCherCanvas->GetCanvas()->Update();
+
+}
+
+void EventDisplay::SelectCherenkov(Int_t id)
+{
+  fCherCanvas->GetCanvas()->cd();
+
+  if (id == 0)
+    fCherHist[0]->Draw("COLZ");
+  else if (id == 1)
+    fCherHist[1]->Draw("COLZ");
+  else if (id == 2)
+    fCherHist[2]->Draw("COLZ");
+
+  fCherCanvas->GetCanvas()->Update();
+}
+
 
 EventDisplay::~EventDisplay() {
   // Clean up used widgets: frames, buttons, layout hints

@@ -66,6 +66,26 @@ EDHist::~EDHist()
 
 
 //**********************************************************
+//***** ACCESS FUNCTIONS ***********************************
+
+// - - - - - - - - - - - - - - - - - - - -
+TH2D *EDHist::GetCher(const char *plot)
+{
+    if (strstr(plot, "PHPH"))
+        return cherPH;
+    else if (strstr(plot, "PHT1"))
+        return cherPH1;
+    else if (strstr(plot, "PHT2"))
+        return cherPH2;
+}
+// - - - - - - - - - - - - - - - - - - - -
+
+
+//**********************************************************
+
+
+
+//**********************************************************
 //***** ROOT STUFF *****************************************
 
 // - - - - - - - - - - - - - - - - - - - - 
@@ -203,15 +223,23 @@ void EDHist::FillHist()
 void EDHist::FillCherenkov()
 {
 
+    TH2D *cher1time = new TH2D("Cher1Time",";Cherenkov 1 Time of Arrival [Ticks]; Cherenkov 1 Pulse Amplitude [ADC Counts]",
+                             100, 0, 500, 100, 0, 8000);
+    TH2D *cher2time = new TH2D("Cher2Time",";Cherenkov 2 Time of Arrival [Ticks]; Cherenkov 2 Pulse Amplitude [ADC Counts]",
+                             100, 0, 500, 100, 0, 8000);
+
     TH2D *cherPH_temp = new TH2D("CherPH",";Cherenkov 1 Pulse Amplitude [ADC Counts]; Cherenkov 2 Pulse Amplitude [ADC Counts]",
                             100, 0, 8000, 100, 0, 8000);
-    int phCut[2] = {800, 1400};
 
     for (int evnt = 0; evnt < m_curTree->GetEntries(); evnt++){
         m_curTree->GetEntry(evnt);
+        cher1time->Fill(digiTime[1], digiPH[1]);
+        cher2time->Fill(digiTime[2], digiPH[2]);
         cherPH_temp->Fill(digiPH[1],digiPH[2]);
     }
 
+    cher1time->Copy(*cherPH1);
+    cher2time->Copy(*cherPH2);
     cherPH_temp->Copy(*cherPH);
 
 }

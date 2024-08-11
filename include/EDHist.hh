@@ -59,6 +59,8 @@ protected:
 
     TH3D *event_display = new TH3D();
     TH2D *cherPH = new TH2D();
+    TH2D *cherPH1 = new TH2D();
+    TH2D *cherPH2 = new TH2D();
 
 
 public:
@@ -81,7 +83,7 @@ public:
 
 
     // Access Function
-    TH2D *GetCher() { return cherPH; };
+    TH2D *GetCher(const char *plot);
     TH3D *GetED() { return event_display; };
 
 };
