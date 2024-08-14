@@ -34,6 +34,8 @@
 
 
 #include "EDHist.hh"
+#include "EDDisplay.hh"
+#include "EDCherenkov.hh"
 
 
 class EventDisplay : public TGMainFrame {
@@ -48,17 +50,27 @@ class EventDisplay : public TGMainFrame {
   TGTextEntry   *fDatDir;
   TGTextEntry   *fRunPre;
   TGNumberEntry *fNRun;
+  TGNumberEntry *fNEvent;
+
+  // Mapping Info
+  TGTextEntry   *fMapDir;
+  TGTextEntry   *fMapName;
+  TGNumberEntry *fFERS;
+  TGNumberEntry *fAnodes;
 
   // Event display
-  bool fIsDrawn = false;
-  TH3D *fHist3D = new TH3D();
-  TH2D *fCherHist[3] = {nullptr};
+  EDDisplay *fDisplay;
+  EDCherenkov *fCherenkov;
+
+  // Plotting 
+  TGNumberEntry *fPhi[2];
+  TGNumberEntry *fZ[2]; 
+
   TLine *fCherLine[2] = {nullptr};
 
   // Cherenkov info
   TGNumberEntry *fCherCuts[2];
   TGCheckButton *fCherShow;
-
 
 
 

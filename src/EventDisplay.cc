@@ -12,6 +12,8 @@
 
 #include "EventDisplay.hh"
 
+//**********************************************************
+//***** CONSTRUCTOR ****************************************
 
 EventDisplay::EventDisplay(const TGWindow *p,UInt_t w,UInt_t h) 
   : TGMainFrame(p,w,h,kHorizontalFrame) {
@@ -22,6 +24,8 @@ EventDisplay::EventDisplay(const TGWindow *p,UInt_t w,UInt_t h)
 
   AddFrame(leftframe, new TGLayoutHints(kLHintsLeft | kFixedWidth ));
   AddFrame(rightframe,new TGLayoutHints(kLHintsExpandX | kLHintsExpandY));
+
+
 
   // --- Run information button group ---- 
   TGVButtonGroup *fRunInfo = new TGVButtonGroup(leftframe, "Run Information");
@@ -59,9 +63,22 @@ EventDisplay::EventDisplay(const TGWindow *p,UInt_t w,UInt_t h)
   fNRun->SetText("1684");
 
 
+  // Event Number 
+  TGHorizontalFrame *fEventGroup = new TGHorizontalFrame(fRunInfo, 300, 50, kLHintsCenterX | kLHintsBottom);
+  fRunInfo->AddFrame(fEventGroup, new TGLayoutHints(kLHintsExpandX | kLHintsCenterX));
+
+  TGLabel *lNEvent = new TGLabel(fEventGroup, "Event");
+  fEventGroup->AddFrame(lNEvent, new TGLayoutHints(kLHintsCenterY));
+
+  fNEvent = new TGNumberEntry(fEventGroup);
+  fEventGroup->AddFrame(fNEvent, new TGLayoutHints(kLHintsCenterY | kLHintsRight));
+  fNEvent->SetText("0");
+  fNEvent->Connect("ValueSet(Long_t)","EventDisplay", this, "DoDraw()");
+
   fRunInfo->Show();
   leftframe->AddFrame(fRunInfo, new TGLayoutHints(kLHintsCenterX | kLHintsExpandX));
   // -------------------------------------
+
 
 
   // ---- Event Display Selection --------
@@ -82,12 +99,12 @@ EventDisplay::EventDisplay(const TGWindow *p,UInt_t w,UInt_t h)
 
 
   // ---- Cherenkov information ----------
-  TGHButtonGroup *fCherenkov = new TGHButtonGroup(leftframe, "Cherenkov");
+  TGHButtonGroup *fCherGroup = new TGHButtonGroup(leftframe, "Cherenkov");
 
-  TGVerticalFrame *fCherCutFrame = new TGVerticalFrame(fCherenkov, 150, 200, kLHintsExpandX | kLHintsExpandY);
-  TGVButtonGroup *fCherSelFrame = new TGVButtonGroup(fCherenkov);
-  fCherenkov->AddFrame(fCherCutFrame, new TGLayoutHints(kLHintsLeft | kLHintsExpandX));
-  fCherenkov->AddFrame(fCherSelFrame, new TGLayoutHints(kLHintsLeft | kLHintsExpandX));
+  TGVerticalFrame *fCherCutFrame = new TGVerticalFrame(fCherGroup, 150, 200, kLHintsExpandX | kLHintsExpandY);
+  TGVButtonGroup *fCherSelFrame = new TGVButtonGroup(fCherGroup);
+  fCherGroup->AddFrame(fCherCutFrame, new TGLayoutHints(kLHintsLeft | kLHintsExpandX));
+  fCherGroup->AddFrame(fCherSelFrame, new TGLayoutHints(kLHintsLeft | kLHintsExpandX));
 
   // Show Cherenkov
   fCherShow = new TGCheckButton(fCherCutFrame, "Show cuts");
@@ -116,9 +133,106 @@ EventDisplay::EventDisplay(const TGWindow *p,UInt_t w,UInt_t h)
   fCherSelFrame->Connect("Pressed(Int_t)", "EventDisplay", this,
                          "SelectCherenkov(Int_t)");
 
-  fCherenkov->Show();
-  leftframe->AddFrame(fCherenkov, new TGLayoutHints(kLHintsCenterX | kLHintsExpandX));
+  fCherGroup->Show();
+  leftframe->AddFrame(fCherGroup, new TGLayoutHints(kLHintsCenterX | kLHintsExpandX));
   // -------------------------------------
+
+
+
+  // ---- Plotting information -----------
+  TGVButtonGroup *fPlotting = new TGVButtonGroup(leftframe, "Plotting");
+
+  // Phi
+  TGHorizontalFrame *gPhi = new TGHorizontalFrame(fPlotting, 150, 200, kLHintsExpandX);
+  fPlotting->AddFrame(gPhi, new TGLayoutHints(kLHintsCenterX | kLHintsExpandX));
+
+  TGLabel *lPhi = new TGLabel(gPhi, "Phi");
+  gPhi->AddFrame(lPhi, new TGLayoutHints(kLHintsLeft | kLHintsCenterY));
+
+  fPhi[0] = new TGNumberEntry(gPhi);
+  gPhi->AddFrame(fPhi[0], new TGLayoutHints(kLHintsCenterX));
+  fPhi[0]->SetText("0");
+
+  fPhi[1] = new TGNumberEntry(gPhi);
+  gPhi->AddFrame(fPhi[1], new TGLayoutHints(kLHintsRight));
+  fPhi[1]->SetText("17");
+
+  // Z
+  TGHorizontalFrame *gZ = new TGHorizontalFrame(fPlotting, 150, 200, kLHintsExpandX);
+  fPlotting->AddFrame(gZ, new TGLayoutHints(kLHintsCenterX | kLHintsExpandX));
+
+  TGLabel *lZ = new TGLabel(gZ, "Z  ");
+  gZ->AddFrame(lZ, new TGLayoutHints(kLHintsLeft | kLHintsCenterY));
+
+  fZ[0] = new TGNumberEntry(gZ);
+  gZ->AddFrame(fZ[0], new TGLayoutHints(kLHintsCenterX));
+  fZ[0]->SetText("11");
+
+  fZ[1] = new TGNumberEntry(gZ);
+  gZ->AddFrame(fZ[1], new TGLayoutHints(kLHintsRight));
+  fZ[1]->SetText("14");  
+
+
+  fPlotting->Show();
+  leftframe->AddFrame(fPlotting, new TGLayoutHints(kLHintsCenterX | kLHintsExpandX));
+  // -------------------------------------
+
+
+
+  // ---- Mapping information ------------
+  TGVButtonGroup *fMapGroup = new TGVButtonGroup(leftframe, "Mapping");
+
+  // Map directory
+  TGLabel *lMapDir = new TGLabel(fMapGroup, "Directory");
+  fMapGroup->AddFrame(lMapDir, new TGLayoutHints(kLHintsLeft));
+
+  fMapDir = new TGTextEntry(fMapGroup);
+  fMapGroup->AddFrame(fMapDir, new TGLayoutHints(kLHintsCenterX | kLHintsExpandX));
+  fMapDir->SetText("/Users/jmcelwee/Documents/testbeam2023/tools/TestBeam23/Mapping/");
+
+
+  // Map
+  TGHorizontalFrame *gMapName = new TGHorizontalFrame(fMapGroup, 400, 50, kLHintsCenterX | kLHintsBottom);
+  fMapGroup->AddFrame(gMapName, new TGLayoutHints(kLHintsExpandX | kLHintsCenterX));
+
+  TGLabel *lMapName = new TGLabel(gMapName, "Name");
+  gMapName->AddFrame(lMapName, new TGLayoutHints(kLHintsCenterY));
+
+  fMapName = new TGTextEntry(gMapName);
+  gMapName->AddFrame(fMapName, new TGLayoutHints(kLHintsCenterY | kLHintsRight));
+  fMapName->SetText("Mapping2023_v2.txt");
+
+
+  // Run Number 
+  TGHorizontalFrame *gFERS = new TGHorizontalFrame(fMapGroup, 300, 50, kLHintsCenterX | kLHintsBottom);
+  fMapGroup->AddFrame(gFERS, new TGLayoutHints(kLHintsExpandX | kLHintsCenterX));
+
+  TGLabel *lFERS = new TGLabel(gFERS, "FERS");
+  gFERS->AddFrame(lFERS, new TGLayoutHints(kLHintsCenterY));
+
+  fFERS = new TGNumberEntry(gFERS);
+  gFERS->AddFrame(fFERS, new TGLayoutHints(kLHintsCenterY | kLHintsRight));
+  fFERS->SetText("8");
+
+  // Run Number 
+  TGHorizontalFrame *gAnodes = new TGHorizontalFrame(fMapGroup, 300, 50, kLHintsCenterX | kLHintsBottom);
+  fMapGroup->AddFrame(gAnodes, new TGLayoutHints(kLHintsExpandX | kLHintsCenterX));
+
+  TGLabel *lAnodes = new TGLabel(gAnodes, "Anodes");
+  gAnodes->AddFrame(lAnodes, new TGLayoutHints(kLHintsCenterY));
+
+  fAnodes = new TGNumberEntry(gAnodes);
+  gAnodes->AddFrame(fAnodes, new TGLayoutHints(kLHintsCenterY | kLHintsRight));
+  fAnodes->SetText("60");
+
+
+  fMapGroup->Show();
+  leftframe->AddFrame(fMapGroup, new TGLayoutHints(kLHintsCenterX | kLHintsExpandX));
+  // -------------------------------------
+
+
+
+
 
   // Draw button
   TGTextButton *draw = new TGTextButton(leftframe,"&Draw");
@@ -158,41 +272,58 @@ EventDisplay::EventDisplay(const TGWindow *p,UInt_t w,UInt_t h)
 
 }
 
+//**********************************************************
+
+
+
+
+
 void EventDisplay::DoDraw() {
 
   // Cast GetText to string in order to add together
   iFile = (std::string)fDatDir->GetText() + (std::string)(fRunPre->GetText())
         + std::to_string(fNRun->GetIntNumber()) + ".root";
   std::cout << H_INFO << "The current file is: " << iFile << std::endl;
+  gStyle->SetOptStat(0);
 
+  // ---- Main Display Canvas ---- 
 
-  EDHist *temp = new EDHist(iFile.c_str(), "t", 8, 60);
-  temp->SetBranches();
-  temp->LoadMap();
-  temp->FillHist();
-  temp->FillCherenkov();
+  fDisplay = new EDDisplay(iFile.c_str(), "t", 
+                           (int)fFERS->GetIntNumber(), (int)fAnodes->GetIntNumber());
+  fDisplay->SetBranches();
+  fDisplay->LoadMap();
+
+  int Phi_temp[2] = {(int) fPhi[0]->GetIntNumber(), (int)fPhi[1]->GetIntNumber()};
+  int Z_temp[2] = {(int) fZ[0]->GetIntNumber(), (int)fZ[1]->GetIntNumber()};
+  fDisplay->FillHist2((int)fNEvent->GetIntNumber(), Phi_temp, Z_temp);
+  //fDisplay->FillHist((int)fNEvent->GetIntNumber());
 
   TCanvas *fCanvas = fEcanvas->GetCanvas();
   fCanvas->cd();
   gPad->SetPhi(-30);
-  temp->GetED()->Draw("BOX2");
+  fDisplay->GetEventDisplay()->Draw("BOX2");
   fCanvas->Update();
-  fIsDrawn = true;
-  temp->GetED()->Copy(*fHist3D);
+  fDisplay->SetDrawn(true);
 
+  // -----------------------------
+
+
+  // ---- Cherenkov Canvas ----
+
+  fCherenkov = new EDCherenkov(iFile.c_str(), "t");
+  fCherenkov->SetBranches();
+  fCherenkov->FillHist();
 
   fCherCanvas->GetCanvas()->cd();
   fCherCanvas->GetCanvas()->SetLogz(1);
   gPad->SetTopMargin(0.04);
   gPad->SetLeftMargin(0.12);
-  temp->GetCher("PHPH")->Draw("COLZ");
-//  temp->GetCher("PHPH")->Copy(fCherHist[0]);
-//  temp->GetCher("PHT1")->Copy(*fCherHist[1]);
-//  temp->GetCher("PHT2")->Copy(*fCherHist[2]);
 
-  gStyle->SetOptStat(0);
-  //gStyle->SetPalette(kLake);
+  fCherenkov->GetCherPH()->Draw("COLZ");
   fCherCanvas->GetCanvas()->Update();
+
+  // --------------------------
+
 
 }
 
@@ -200,16 +331,16 @@ void EventDisplay::Do2D(Int_t id) {
 
   fEcanvas->GetCanvas()->cd();
 
-  if (fIsDrawn) 
+  if (fDisplay->IsDrawn()) 
   {
     if (id == 0) 
-      fHist3D->Draw("BOX2");
+      fDisplay->GetEventDisplay()->Draw("BOX2");
     else if (id == 1)
-      fHist3D->Project3D("zy")->Draw("COLZ");
+      fDisplay->GetEventDisplay()->Project3D("zy")->Draw("COLZ");
     else if (id == 2)
-      fHist3D->Project3D("xy")->Draw("COLZ");
+      fDisplay->GetEventDisplay()->Project3D("xy")->Draw("COLZ");
     else if (id == 3)
-      fHist3D->Project3D("zx")->Draw("COLZ");
+      fDisplay->GetEventDisplay()->Project3D("zx")->Draw("COLZ");
   }
 
   fEcanvas->GetCanvas()->Update();
@@ -251,11 +382,11 @@ void EventDisplay::SelectCherenkov(Int_t id)
   fCherCanvas->GetCanvas()->cd();
 
   if (id == 0)
-    fCherHist[0]->Draw("COLZ");
+    fCherenkov->GetCherPH()->Draw("COLZ");
   else if (id == 1)
-    fCherHist[1]->Draw("COLZ");
+    fCherenkov->GetCherPHT1()->Draw("COLZ");
   else if (id == 2)
-    fCherHist[2]->Draw("COLZ");
+    fCherenkov->GetCherPHT2()->Draw("COLZ");
 
   fCherCanvas->GetCanvas()->Update();
 }

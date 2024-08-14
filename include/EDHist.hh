@@ -37,57 +37,34 @@ class EDHist
 {
 
 protected:
+    // File and tree information
     TFile m_curFile {};
     TTree *m_curTree {nullptr};
 
-    const char *m_intree = "t";
-
-    int m_FERS = 4;
-    int m_Anodes = 60; 
-
-    // This is not the best way to do 
-    // it, but will have to do for now
-    short m_HG[10*60], m_LG[10*60];
-    UShort_t digiPH[8], digiTime[8];
+    bool m_IsDrawn = false; 
 
     std::string m_dir = "/Users/jmcelwee/Documents/testbeam2023/data/";
-    std::string m_mapDir = "/Users/jmcelwee/Documents/testbeam2023/tools/TestBeam23/Mapping/";
-    std::string m_map = "Mapping2023_v2.txt";
-
-    std::map<std::vector<int>, std::vector<int>> m_anodeMap;
-    std::map<std::vector<int>, std::vector<int>> m_coordMap;
-
-    TH3D *event_display = new TH3D();
-    TH2D *cherPH = new TH2D();
-    TH2D *cherPH1 = new TH2D();
-    TH2D *cherPH2 = new TH2D();
 
 
 public:
-    // --- Constructors ---
+    // ---- Constructors ----
     EDHist(const char *infile);
     EDHist(const char *infile, const char *intree);
-    EDHist(const char *infile, int FERS, int anodes); 
-    EDHist(const char *infile, const char *intree, int FERS, int anodes); 
-    ~EDHist();
+    virtual ~EDHist();
+
+    // ---- Methods ----
+    void SetDrawn(bool bIsDrawn);
+    bool IsDrawn() { return m_IsDrawn; };
 
     // ROOT Stuff
-    void SetBranches();
+    virtual void SetBranches() = 0;
+    virtual void FillHist(int inEvent) = 0;
 
-    void LoadMap();
-
-    void FillHist();
-    void FillCherenkov();
-
-    void Events3D(const std::vector<THV> &hist_lg, const std::vector<THV> &hist_hg);
-
-
-    // Access Function
-    TH2D *GetCher(const char *plot);
-    TH3D *GetED() { return event_display; };
 
 };
 
 
-
 #endif // Header guard
+
+
+
