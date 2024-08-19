@@ -13,6 +13,7 @@
 #define EVENTDISPLAY_HH
 
 #include <string>
+#include <memory>
 
 // Regular ROOT information
 #include <TCanvas.h>
@@ -29,11 +30,14 @@
 #include <TGButtonGroup.h>
 #include <TRootEmbeddedCanvas.h>
 
+#include <TGStatusBar.h>
+
 #include <TGButton.h>
 #include <TGNumberEntry.h>
 
 
 #include "EDHist.hh"
+#include "EDHitMap.hh"
 #include "EDDisplay.hh"
 #include "EDCherenkov.hh"
 
@@ -46,11 +50,20 @@ class EventDisplay : public TGMainFrame {
   TRootEmbeddedCanvas *fEcanvas;
   TRootEmbeddedCanvas *fCherCanvas;
 
-  // Run information
+  // ----- File information -----
+
+  // Buttons 
+  TGTextButton *fDraw;
+
+  // Text Entry
   TGTextEntry   *fDatDir;
   TGTextEntry   *fRunPre;
+  TGTextEntry   *fRunSuf;
   TGNumberEntry *fNRun;
   TGNumberEntry *fNEvent;
+  int m_Evnt = 0;
+
+  // ----------------------------
 
   // Mapping Info
   TGTextEntry   *fMapDir;
@@ -59,8 +72,9 @@ class EventDisplay : public TGMainFrame {
   TGNumberEntry *fAnodes;
 
   // Event display
-  EDDisplay *fDisplay;
-  EDCherenkov *fCherenkov;
+  std::shared_ptr<EDDisplay>   fDisplay;
+  std::shared_ptr<EDCherenkov> fCherenkov;
+  TGStatusBar *fStatus[2];
 
   // Plotting 
   TGNumberEntry *fPhi[2];
@@ -72,6 +86,11 @@ class EventDisplay : public TGMainFrame {
   TGNumberEntry *fCherCuts[2];
   TGCheckButton *fCherShow;
 
+  // Hit Map 
+  TGNumberEntry *fZSlice;
+  std::shared_ptr<EDHitMap> fHitMap{nullptr}; 
+  bool          bHitMapDrawn = false;
+
 
 
   std::string iFile;
@@ -79,14 +98,29 @@ class EventDisplay : public TGMainFrame {
 
 public:
 
-  // Class Definitions
+  // ----- Enumeration -----
+  enum ECanvas 
+  {
+    kRaw = 0,
+    kProcessed = 1,
+    kEvtMatch = 2
+  };
+
+
+  // ----- Definitions -----
   EventDisplay(const TGWindow *p,UInt_t w,UInt_t h);
   virtual ~EventDisplay();
 
-  // ---- Methods ----
+  // ----- Methods -----
   void DoDraw();
+  void DoHitMap();
   void DoWrite();
   void Do2D(Int_t id);
+
+  void SwapRawProcessed(Int_t cSwitch);
+
+  // ---- Hit Map ----
+  void ResetHitMap();
 
   void ShowCherenkov(Bool_t bShow);
   void SelectCherenkov(Int_t id);

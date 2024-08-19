@@ -24,9 +24,6 @@ private:
     int m_FERS = 4;
     int m_Anodes = 60;
 
-    std::string m_mapDir = "/Users/jmcelwee/Documents/testbeam2023/tools/TestBeam23/Mapping/";
-    std::string m_map = "Mapping_Right_8FERS.txt";
-
     std::map<std::vector<int>, std::vector<int>> m_anodeMap;
     std::map<std::vector<int>, std::vector<int>> m_coordMap;
 
@@ -38,14 +35,15 @@ public:
     EDDisplay(const char *infile);
     EDDisplay(const char *infile, const char *intree);
     EDDisplay(const char *infile, int FERS, int anodes); 
-    EDDisplay(const char *infile, const char *intree, int FERS, int anodes); 
+    EDDisplay(const char *infile, const char *intree, int FERS); 
     ~EDDisplay();
 
     // ---- Methods ----
     void SetBranches()         override;
     void FillHist(int inEvent) override;
     void FillHist2(int inEvent, int Phi[2], int Z[2]);
-    void LoadMap();
+    void LoadMap(std::string inMap,
+                 std::string mapDir = "/Users/jmcelwee/Documents/testbeam2023/tools/TestBeam23/Mapping/");
 
     // ---- Access Functions ----
     int GetFERS() { return m_FERS; };

@@ -38,11 +38,10 @@ EDDisplay::EDDisplay(const char *infile, int FERS, int anodes)
 
 
 // - - - - - - - - - - - - - - - - - - - - 
-EDDisplay::EDDisplay(const char *infile, const char *intree, int FERS, int anodes) 
+EDDisplay::EDDisplay(const char *infile, const char *intree, int FERS) 
     : EDHist(infile, intree)
 {
     m_FERS = FERS;
-    m_Anodes = anodes;
 }
 // - - - - - - - - - - - - - - - - - - - -  
 
@@ -69,13 +68,10 @@ void EDDisplay::SetBranches()
 
 
 // - - - - - - - - - - - - - - - - - - - - 
-void EDDisplay::LoadMap()
+void EDDisplay::LoadMap(std::string inMap, std::string mapDir)
 {
-    if (m_FERS == 8) m_map = "Mapping_Right_8FERS.txt";
-    std::cout << H_INFO << "Map selected: \n\t" << m_dir << m_map << std::endl;
-
-    m_anodeMap = MappingAnodeCord( (m_mapDir + m_map) .c_str() );
-    m_coordMap = MappingCordAnode( (m_mapDir + m_map) .c_str() );
+    m_anodeMap = MappingAnodeCord( (mapDir + inMap) .c_str() );
+    m_coordMap = MappingCordAnode( (mapDir + inMap) .c_str() );
 }
 // - - - - - - - - - - - - - - - - - - - - 
 
@@ -103,8 +99,6 @@ void EDDisplay::FillHist2(int inEvent, int Phi[2], int Z[2])
 
     if (inEvent < 0) std::iota(evnt_arr.begin(),evnt_arr.end(), 1);
     else evnt_arr.at(0) = inEvent;
-
-    std::cout << "Event number " << inEvent << std::endl;
 
     for (int FERS = 0; FERS < m_FERS; FERS++) // FERS  
         for (int anode = 0; anode < m_Anodes; anode++){ // Anode

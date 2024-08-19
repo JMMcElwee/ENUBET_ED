@@ -34,7 +34,7 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.cc $(DEPS)
 	$(CXX) -c -o $@ $< $(CXXFLAGS)
 
 $(TARGET): $(OBJ) lib/$(DICT_CXX)
-	 $(CXX)  $(CXXFLAGS) $(LDFLAGS) $(LIBS) $^ -o $@
+	 $(CXX) $(CXXFLAGS) $(LDFLAGS) $(LIBS) $^ -o $@
 
 .PHONY: clean
 

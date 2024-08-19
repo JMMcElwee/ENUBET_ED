@@ -4,6 +4,8 @@ EventDisplayDict*
 *.pcm
 *.cxx
 *.o
+*.C
+*.tmp
 *~
 *.so
 .DS_Store

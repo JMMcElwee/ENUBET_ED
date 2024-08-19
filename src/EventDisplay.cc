@@ -20,15 +20,15 @@ EventDisplay::EventDisplay(const TGWindow *p,UInt_t w,UInt_t h)
  
   // Create a horizontal frame widget with buttons
   TGVerticalFrame *leftframe = new TGVerticalFrame(this, 400, 600, kLHintsLeft | kLHintsCenterY);
-  TGVerticalFrame *rightframe = new TGVerticalFrame(this, 600, 600, kLHintsRight | kLHintsExpandX | kLHintsExpandY);
+  TGVerticalFrame *rightframe = new TGVerticalFrame(this, 600, 600, kLHintsExpandX | kLHintsExpandY);
 
   AddFrame(leftframe, new TGLayoutHints(kLHintsLeft | kFixedWidth ));
   AddFrame(rightframe,new TGLayoutHints(kLHintsExpandX | kLHintsExpandY));
 
 
-
   // --- Run information button group ---- 
-  TGVButtonGroup *fRunInfo = new TGVButtonGroup(leftframe, "Run Information");
+  TGVButtonGroup *fRunInfo = new TGVButtonGroup(leftframe, "Data Information");
+
 
   // Data Directory
   TGLabel *lDatDir = new TGLabel(fRunInfo, "Directory");
@@ -36,44 +36,72 @@ EventDisplay::EventDisplay(const TGWindow *p,UInt_t w,UInt_t h)
 
   fDatDir = new TGTextEntry(fRunInfo);
   fRunInfo->AddFrame(fDatDir, new TGLayoutHints(kLHintsCenterX | kLHintsExpandX));
-  fDatDir->SetText("/Users/jmcelwee/Documents/testbeam2023/data/");
+  fDatDir->SetText("/Users/jmcelwee/Documents/testbeam2023/data/2023/");
 
+
+  TGHorizontalFrame *fRunInfoFrame2 = new TGHorizontalFrame(fRunInfo, 20, 20, kLHintsCenterX | kLHintsBottom);
+  fRunInfo->AddFrame(fRunInfoFrame2, new TGLayoutHints(kLHintsExpandX | kLHintsCenterX));
 
   // Run Prefix
-  TGHorizontalFrame *pHoriz = new TGHorizontalFrame(fRunInfo, 400, 50, kLHintsCenterX | kLHintsBottom);
-  fRunInfo->AddFrame(pHoriz, new TGLayoutHints(kLHintsExpandX | kLHintsCenterX));
+  TGVerticalFrame *fPrefixFrame = new TGVerticalFrame(fRunInfoFrame2, 50, 30, kLHintsCenterX);
+  fRunInfoFrame2->AddFrame(fPrefixFrame, new TGLayoutHints(kLHintsExpandX));
 
-  TGLabel *lRunPre = new TGLabel(pHoriz, "Prefix        ");
-  pHoriz->AddFrame(lRunPre, new TGLayoutHints(kLHintsCenterY));
+  TGLabel *lRunPre = new TGLabel(fPrefixFrame, "Prefix");
+  fPrefixFrame->AddFrame(lRunPre, new TGLayoutHints(kLHintsLeft));
 
-  fRunPre = new TGTextEntry(pHoriz);
-  pHoriz->AddFrame(fRunPre, new TGLayoutHints(kLHintsCenterY | kLHintsRight));
+  fRunPre = new TGTextEntry(fPrefixFrame);
+  fPrefixFrame->AddFrame(fRunPre, new TGLayoutHints(kLHintsExpandX | kLHintsLeft));
   fRunPre->SetText("run36");
 
-
   // Run Number 
-  TGHorizontalFrame *rBottom = new TGHorizontalFrame(fRunInfo, 300, 50, kLHintsCenterX | kLHintsBottom);
-  fRunInfo->AddFrame(rBottom, new TGLayoutHints(kLHintsExpandX | kLHintsCenterX));
+  TGVerticalFrame *fRunNumFrame = new TGVerticalFrame(fRunInfoFrame2, 30, 30, kLHintsCenterX);
+  fRunInfoFrame2->AddFrame(fRunNumFrame, new TGLayoutHints(kLHintsExpandX | kLHintsLeft));
 
-  TGLabel *lNRun = new TGLabel(rBottom, "Number");
-  rBottom->AddFrame(lNRun, new TGLayoutHints(kLHintsCenterY));
+  TGLabel *lNRun = new TGLabel(fRunNumFrame, "Number");
+  fRunNumFrame->AddFrame(lNRun, new TGLayoutHints(kLHintsLeft));
 
-  fNRun = new TGNumberEntry(rBottom);
-  rBottom->AddFrame(fNRun, new TGLayoutHints(kLHintsCenterY | kLHintsRight));
+  fNRun = new TGNumberEntry(fRunNumFrame);
+  fRunNumFrame->AddFrame(fNRun, new TGLayoutHints(kLHintsExpandX | kLHintsLeft));
   fNRun->SetText("1684");
 
-
   // Event Number 
-  TGHorizontalFrame *fEventGroup = new TGHorizontalFrame(fRunInfo, 300, 50, kLHintsCenterX | kLHintsBottom);
-  fRunInfo->AddFrame(fEventGroup, new TGLayoutHints(kLHintsExpandX | kLHintsCenterX));
+  TGVerticalFrame *fSufFrame = new TGVerticalFrame(fRunInfoFrame2, 30, 30, kLHintsCenterX | kLHintsBottom);
+  fRunInfoFrame2->AddFrame(fSufFrame, new TGLayoutHints(kLHintsExpandX | kLHintsCenterX));
 
-  TGLabel *lNEvent = new TGLabel(fEventGroup, "Event");
-  fEventGroup->AddFrame(lNEvent, new TGLayoutHints(kLHintsCenterY));
+  TGLabel *lRunSuf = new TGLabel(fSufFrame, "Suffix");
+  fSufFrame->AddFrame(lRunSuf, new TGLayoutHints(kLHintsLeft));
 
-  fNEvent = new TGNumberEntry(fEventGroup);
-  fEventGroup->AddFrame(fNEvent, new TGLayoutHints(kLHintsCenterY | kLHintsRight));
-  fNEvent->SetText("0");
-  fNEvent->Connect("ValueSet(Long_t)","EventDisplay", this, "DoDraw()");
+  fRunSuf = new TGTextEntry(fSufFrame);
+  fSufFrame->AddFrame(fRunSuf, new TGLayoutHints(kLHintsExpandX | kLHintsLeft));
+  fRunSuf->SetText("");
+
+  // Select Data Type
+  TGHorizontalFrame *gDataSelFrame = new TGHorizontalFrame(fRunInfo, 400, 30, kLHintsCenterX);
+  fRunInfo->AddFrame(gDataSelFrame, new TGLayoutHints(kLHintsExpandX));
+
+  TGVButtonGroup *gDataSel = new TGVButtonGroup(gDataSelFrame);
+  gDataSelFrame->AddFrame(gDataSel, new TGLayoutHints(kLHintsExpandX));
+
+  new TGRadioButton(gDataSel, "Processed", kProcessed);
+  new TGRadioButton(gDataSel, "Raw", kRaw);
+  new TGRadioButton(gDataSel, "Evt. Match", kEvtMatch);
+  gDataSel->SetButton(kProcessed); 
+  gDataSel->Connect("Pressed(Int_t)", "EventDisplay", this,
+                       "SwapRawProcessed(Int_t)");
+
+
+  // Event Number
+  TGVerticalFrame *fEvtNumFrame = new TGVerticalFrame(gDataSelFrame, 30, 30, kLHintsCenterX);
+  gDataSelFrame->AddFrame(fEvtNumFrame, new TGLayoutHints(kLHintsCenterX | kLHintsCenterY));
+
+  TGLabel *lNEvent = new TGLabel(fEvtNumFrame, "Event");
+  fEvtNumFrame->AddFrame(lNEvent, new TGLayoutHints(kLHintsLeft));
+
+  fNEvent = new TGNumberEntry(fEvtNumFrame);
+  fEvtNumFrame->AddFrame(fNEvent, new TGLayoutHints(kLHintsExpandX | kLHintsRight));
+  fNEvent->SetNumber(m_Evnt);
+  //fNEvent->SetState(TGNumberEntry::kNESInteger);
+  //fNEvent->Connect("ValueSet(Long_t)","EventDisplay", this, "DoDraw()");
 
   fRunInfo->Show();
   leftframe->AddFrame(fRunInfo, new TGLayoutHints(kLHintsCenterX | kLHintsExpandX));
@@ -151,11 +179,13 @@ EventDisplay::EventDisplay(const TGWindow *p,UInt_t w,UInt_t h)
 
   fPhi[0] = new TGNumberEntry(gPhi);
   gPhi->AddFrame(fPhi[0], new TGLayoutHints(kLHintsCenterX));
-  fPhi[0]->SetText("0");
+  fPhi[0]->SetText("-8");
+  fPhi[0]->SetLimits(TGNumberEntry::kNELLimitMinMax,-8,17);
 
   fPhi[1] = new TGNumberEntry(gPhi);
   gPhi->AddFrame(fPhi[1], new TGLayoutHints(kLHintsRight));
   fPhi[1]->SetText("17");
+  fPhi[1]->SetLimits(TGNumberEntry::kNELLimitMinMax,-8,17);
 
   // Z
   TGHorizontalFrame *gZ = new TGHorizontalFrame(fPlotting, 150, 200, kLHintsExpandX);
@@ -166,11 +196,13 @@ EventDisplay::EventDisplay(const TGWindow *p,UInt_t w,UInt_t h)
 
   fZ[0] = new TGNumberEntry(gZ);
   gZ->AddFrame(fZ[0], new TGLayoutHints(kLHintsCenterX));
-  fZ[0]->SetText("11");
+  fZ[0]->SetText("8");
+  fZ[0]->SetLimits(TGNumberEntry::kNELLimitMinMax,0,14);
 
   fZ[1] = new TGNumberEntry(gZ);
   gZ->AddFrame(fZ[1], new TGLayoutHints(kLHintsRight));
-  fZ[1]->SetText("14");  
+  fZ[1]->SetText("14");
+  fZ[1]->SetLimits(TGNumberEntry::kNELLimitMinMax,0,14);
 
 
   fPlotting->Show();
@@ -190,32 +222,34 @@ EventDisplay::EventDisplay(const TGWindow *p,UInt_t w,UInt_t h)
   fMapGroup->AddFrame(fMapDir, new TGLayoutHints(kLHintsCenterX | kLHintsExpandX));
   fMapDir->SetText("/Users/jmcelwee/Documents/testbeam2023/tools/TestBeam23/Mapping/");
 
+  TGHorizontalFrame *fMapFrame2 = new TGHorizontalFrame(fMapGroup, 400, 50, kLHintsCenterX | kLHintsBottom);
+  fMapGroup->AddFrame(fMapFrame2, new TGLayoutHints(kLHintsExpandX | kLHintsCenterX));
 
   // Map
-  TGHorizontalFrame *gMapName = new TGHorizontalFrame(fMapGroup, 400, 50, kLHintsCenterX | kLHintsBottom);
-  fMapGroup->AddFrame(gMapName, new TGLayoutHints(kLHintsExpandX | kLHintsCenterX));
+  TGVerticalFrame *gMapName = new TGVerticalFrame(fMapFrame2, 400, 50, kLHintsLeft);
+  fMapFrame2->AddFrame(gMapName, new TGLayoutHints(kLHintsExpandX));
 
   TGLabel *lMapName = new TGLabel(gMapName, "Name");
-  gMapName->AddFrame(lMapName, new TGLayoutHints(kLHintsCenterY));
+  gMapName->AddFrame(lMapName, new TGLayoutHints(kLHintsLeft));
 
   fMapName = new TGTextEntry(gMapName);
-  gMapName->AddFrame(fMapName, new TGLayoutHints(kLHintsCenterY | kLHintsRight));
-  fMapName->SetText("Mapping2023_v2.txt");
+  gMapName->AddFrame(fMapName, new TGLayoutHints(kLHintsLeft | kLHintsExpandX));
+  fMapName->SetText("Mapping_Left_9FERS.txt");
 
 
-  // Run Number 
-  TGHorizontalFrame *gFERS = new TGHorizontalFrame(fMapGroup, 300, 50, kLHintsCenterX | kLHintsBottom);
-  fMapGroup->AddFrame(gFERS, new TGLayoutHints(kLHintsExpandX | kLHintsCenterX));
+  // FERS Number
+  TGVerticalFrame *gFERS = new TGVerticalFrame(fMapFrame2, 200, 50, kLHintsLeft);
+  fMapFrame2->AddFrame(gFERS, new TGLayoutHints(kLHintsLeft));
 
   TGLabel *lFERS = new TGLabel(gFERS, "FERS");
-  gFERS->AddFrame(lFERS, new TGLayoutHints(kLHintsCenterY));
+  gFERS->AddFrame(lFERS, new TGLayoutHints(kLHintsLeft));
 
   fFERS = new TGNumberEntry(gFERS);
-  gFERS->AddFrame(fFERS, new TGLayoutHints(kLHintsCenterY | kLHintsRight));
-  fFERS->SetText("8");
+  gFERS->AddFrame(fFERS, new TGLayoutHints(kLHintsLeft | kLHintsExpandX));
+  fFERS->SetText("9");
 
-  // Run Number 
-  TGHorizontalFrame *gAnodes = new TGHorizontalFrame(fMapGroup, 300, 50, kLHintsCenterX | kLHintsBottom);
+  // Anode Number 
+  /*TGHorizontalFrame *gAnodes = new TGHorizontalFrame(fMapGroup, 300, 50, kLHintsCenterX | kLHintsBottom);
   fMapGroup->AddFrame(gAnodes, new TGLayoutHints(kLHintsExpandX | kLHintsCenterX));
 
   TGLabel *lAnodes = new TGLabel(gAnodes, "Anodes");
@@ -223,8 +257,7 @@ EventDisplay::EventDisplay(const TGWindow *p,UInt_t w,UInt_t h)
 
   fAnodes = new TGNumberEntry(gAnodes);
   gAnodes->AddFrame(fAnodes, new TGLayoutHints(kLHintsCenterY | kLHintsRight));
-  fAnodes->SetText("60");
-
+  fAnodes->SetText("60");*/
 
   fMapGroup->Show();
   leftframe->AddFrame(fMapGroup, new TGLayoutHints(kLHintsCenterX | kLHintsExpandX));
@@ -232,29 +265,72 @@ EventDisplay::EventDisplay(const TGWindow *p,UInt_t w,UInt_t h)
 
 
 
+  // ---- Hit Map ------------------------
+  TGVButtonGroup *fHitMapGroup = new TGVButtonGroup(leftframe, "Raw Hit Map");
+
+  // Z Slice 
+  TGLabel *lZSlice = new TGLabel(fHitMapGroup, "Z Slice");
+  fHitMapGroup->AddFrame(lZSlice, new TGLayoutHints(kLHintsLeft | kLHintsCenterY));
+
+  fZSlice = new TGNumberEntry(fHitMapGroup);
+  fHitMapGroup->AddFrame(fZSlice, new TGLayoutHints(kLHintsCenterX));
+  fZSlice->SetText("14");
+  fZSlice->Connect("ValueSet(Long_t)","EventDisplay", this, "DoHitMap()");
+  fZSlice->SetLimits(TGNumberEntry::kNELLimitMinMax,0,14);
+
+  fHitMapGroup->Show();
+  leftframe->AddFrame(fHitMapGroup, new TGLayoutHints(kLHintsCenterX | kLHintsExpandX));
+  // -------------------------------------
 
 
-  // Draw button
-  TGTextButton *draw = new TGTextButton(leftframe,"&Draw");
-  draw->Connect("Clicked()","EventDisplay",this,"DoDraw()");
-  leftframe->AddFrame(draw, new TGLayoutHints(kLHintsCenterX,3,3,3,3));
 
+  // ---- Buttons ------------------------
+
+  // Draw buttons
+  fDraw = new TGTextButton(leftframe,"&Draw");
+  leftframe->AddFrame(fDraw, new TGLayoutHints(kLHintsCenterX | kLHintsCenterY));
+  fDraw->Connect("Clicked()","EventDisplay",this,"DoDraw()");
  
   // Exit button
   TGTextButton *exit = new TGTextButton(leftframe,"&Exit",
                                         "gApplication->Terminate(0)");
   leftframe->AddFrame(exit, new TGLayoutHints(kLHintsCenterX,3,3,3,3));
 
+  // -------------------------------------
 
+
+
+  // ---- Draw Canvas' -------------------
 
   // Create canvas widgets
   fEcanvas = new TRootEmbeddedCanvas("Ecanvas",rightframe,600,600);
   rightframe->AddFrame(fEcanvas, new TGLayoutHints(kLHintsExpandX|kLHintsExpandY,3,3,3,3));
 
+  // Add frame for cherenkov and information 
+  TGHorizontalFrame *cherInfoFrame = new TGHorizontalFrame(rightframe, 200, 600, kLHintsCenterX | kLHintsBottom);
+  rightframe->AddFrame(cherInfoFrame, new TGLayoutHints(kLHintsRight | kLHintsExpandX));
+
+  // Info Out Frame
+  TGVerticalFrame *fInfoOutFrame = new TGVerticalFrame(cherInfoFrame, 200, 400, kLHintsCenterX);
+  cherInfoFrame->AddFrame(fInfoOutFrame, new TGLayoutHints(kLHintsLeft | kLHintsExpandX));
+
+  fStatus[0] = new TGStatusBar(fInfoOutFrame, 200, 400, kVerticalFrame | kLHintsCenterX);
+  fInfoOutFrame->AddFrame(fStatus[0], new TGLayoutHints( kLHintsCenterX | kLHintsExpandX));
+  fStatus[0]->Draw3DCorner(kFALSE);
+
+  fStatus[1] = new TGStatusBar(fInfoOutFrame, 200, 400, kVerticalFrame | kLHintsCenterX);
+  fStatus[1]->Draw3DCorner(kFALSE);
+  int parts[] = {30,30,30};
+  fStatus[1]->SetParts(parts, 3);
+  fInfoOutFrame->AddFrame(fStatus[1], new TGLayoutHints( kLHintsCenterX | kLHintsExpandX));
+ 
 
   // Cherenkov Canvas 
-  fCherCanvas = new TRootEmbeddedCanvas("CherCanvas",leftframe,300,300);
-  leftframe->AddFrame(fCherCanvas, new TGLayoutHints(kLHintsBottom | kLHintsRight));
+  fCherCanvas = new TRootEmbeddedCanvas("CherCanvas",cherInfoFrame,200,200);
+  cherInfoFrame->AddFrame(fCherCanvas, new TGLayoutHints(kLHintsBottom));
+
+  // -------------------------------------
+
 
 
   // Set a name to the main frame
@@ -276,27 +352,113 @@ EventDisplay::EventDisplay(const TGWindow *p,UInt_t w,UInt_t h)
 
 
 
+//**********************************************************
+//***** SWAP DISPLAYS **************************************
+
+// - - - - - - - - - - - - - - - - - - - - 
+void EventDisplay::SwapRawProcessed(Int_t cSwitch)
+{
+  /* 
+    Need to change the buttons and text in order to read in
+    the values differently.
+  */
+
+  std::string DrawFunc, datDir, runPre, runSuf, runNum, mapDir, mapJanus;
+
+  // Reconnect draw button 
+  fDraw->Disconnect("Clicked()");  
+
+  switch(cSwitch) 
+  {
+
+  // Raw data, no processing
+  case kRaw:
+    DrawFunc = "DoHitMap()";
+    datDir = "/Users/jmcelwee/Documents/testbeam2023/data/2024/RAW/";
+    runPre = "Run";
+    runSuf = "_list";
+    runNum = "32";
+    mapDir = "/Users/jmcelwee/Documents/testbeam2023/tools/TestBeam24/Mapping/";
+    mapJanus = "IC-Janus.txt";
+    break;
+
+  // Processed through data chain
+  case kProcessed:
+    DrawFunc = "DoDraw()";
+    datDir = "/Users/jmcelwee/Documents/testbeam2023/data/2023/";
+    runPre = "run36";
+    runSuf = "";
+    runNum = "1684";
+    mapDir = "/Users/jmcelwee/Documents/testbeam2023/tools/TestBeam23/Mapping/";
+    mapJanus = "Mapping_Left_9FERS.txt";
+    break;
+
+  // Event matched using Luca's code
+  case kEvtMatch:
+    DrawFunc = "DoHitMap()";
+    datDir = "/Users/jmcelwee/Documents/testbeam2023/data/2024/RAW/";
+    runPre = "Run";
+    runSuf = "_sorted";
+    runNum = "32";
+    mapDir = "/Users/jmcelwee/Documents/testbeam2023/tools/TestBeam24/Mapping/";
+    mapJanus = "IC-Janus.txt";
+    break;
+
+  // Default value is the processed
+  default:
+    DrawFunc = "DoDraw()";
+    datDir = "/Users/jmcelwee/Documents/testbeam2023/data/2023/";
+    runPre = "run36";
+    runSuf = "";
+    runNum = "1684";
+    mapDir = "/Users/jmcelwee/Documents/testbeam2023/tools/TestBeam23/Mapping/";
+    mapJanus = "Mapping_Left_9FERS.txt";
+  }
+
+  // Set values for output
+  fDraw->Connect("Clicked()","EventDisplay",this,DrawFunc.c_str());
+  fDatDir->SetText(datDir.c_str());
+  fRunPre->SetText(runPre.c_str());
+  fRunSuf->SetText(runSuf.c_str());
+  fNRun->SetText(runNum.c_str());
+  fMapDir->SetText(mapDir.c_str());
+  fMapName->SetText(mapJanus.c_str());
+}
+// - - - - - - - - - - - - - - - - - - - - 
+
+//**********************************************************
 
 
+
+//**********************************************************
+//***** DISPLAY DRAWING ************************************
+
+// - - - - - - - - - - - - - - - - - - - - 
 void EventDisplay::DoDraw() {
+
+  gStyle->SetOptStat(0);
 
   // Cast GetText to string in order to add together
   iFile = (std::string)fDatDir->GetText() + (std::string)(fRunPre->GetText())
         + std::to_string(fNRun->GetIntNumber()) + ".root";
-  std::cout << H_INFO << "The current file is: " << iFile << std::endl;
-  gStyle->SetOptStat(0);
+  fStatus[0]->SetText(iFile.c_str());
+
 
   // ---- Main Display Canvas ---- 
 
-  fDisplay = new EDDisplay(iFile.c_str(), "t", 
-                           (int)fFERS->GetIntNumber(), (int)fAnodes->GetIntNumber());
+  fDisplay = std::make_shared<EDDisplay>(iFile.c_str(), "t",
+                           (int)fFERS->GetIntNumber());
   fDisplay->SetBranches();
-  fDisplay->LoadMap();
+  fDisplay->LoadMap(fMapName->GetText(), fMapDir->GetText());
 
   int Phi_temp[2] = {(int) fPhi[0]->GetIntNumber(), (int)fPhi[1]->GetIntNumber()};
   int Z_temp[2] = {(int) fZ[0]->GetIntNumber(), (int)fZ[1]->GetIntNumber()};
   fDisplay->FillHist2((int)fNEvent->GetIntNumber(), Phi_temp, Z_temp);
-  //fDisplay->FillHist((int)fNEvent->GetIntNumber());
+
+  std::string evtOut = "Event " + std::to_string(fNEvent->GetIntNumber());
+  fStatus[1]->SetText(evtOut.c_str(), 0);
+
+
 
   TCanvas *fCanvas = fEcanvas->GetCanvas();
   fCanvas->cd();
@@ -310,7 +472,7 @@ void EventDisplay::DoDraw() {
 
   // ---- Cherenkov Canvas ----
 
-  fCherenkov = new EDCherenkov(iFile.c_str(), "t");
+  fCherenkov = std::make_shared<EDCherenkov>(iFile.c_str(), "t");
   fCherenkov->SetBranches();
   fCherenkov->FillHist();
 
@@ -324,8 +486,62 @@ void EventDisplay::DoDraw() {
 
   // --------------------------
 
-
 }
+// - - - - - - - - - - - - - - - - - - - - 
+
+//**********************************************************
+
+
+//**********************************************************
+//***** HITMAP *********************************************
+
+// - - - - - - - - - - - - - - - - - - - - 
+void EventDisplay::DoHitMap()
+{
+  // Remove stat box 
+  gStyle->SetOptStat(0);
+
+  // If the map is already drawn, don't redraw
+  if (!bHitMapDrawn)
+  {
+    // Set new EDHitMap object
+    std::string infile = (std::string)fDatDir->GetText() +
+                         (std::string)fRunPre->GetText() +
+                         std::to_string(fNRun->GetIntNumber()) +
+                         ".root";
+    fHitMap = std::make_shared<EDHitMap>(infile.c_str());
+    fHitMap->SetBranches();
+
+    // Load IC to Concentrator and IC to Janus maps
+    fHitMap->LoadMap(( (std::string)fMapDir->GetText() + "IC-Concentrator.txt").c_str(),
+                     ( (std::string)fMapDir->GetText() + (std::string)fMapName->GetText()).c_str());
+
+    // Fill histograms for the certain event
+    fHitMap->FillHist((int)fNEvent->GetIntNumber());
+
+    // Check if built 
+    bHitMapDrawn = true;
+  }
+
+  // Draw onto Canvas
+  fEcanvas->GetCanvas()->cd();
+  fHitMap->GetHitMap()[(int)fZSlice->GetIntNumber()]->Draw("COLZ");
+  fEcanvas->GetCanvas()->Update();
+}
+// - - - - - - - - - - - - - - - - - - - - 
+
+
+// - - - - - - - - - - - - - - - - - - - - 
+void EventDisplay::ResetHitMap()
+{
+  bHitMapDrawn = false;
+}
+// - - - - - - - - - - - - - - - - - - - - 
+
+//**********************************************************
+
+
+
 
 void EventDisplay::Do2D(Int_t id) {
 
@@ -393,7 +609,5 @@ void EventDisplay::SelectCherenkov(Int_t id)
 
 
 EventDisplay::~EventDisplay() {
-  // Clean up used widgets: frames, buttons, layout hints
-  //fMain->Cleanup();
-  //delete fMain;
+
 }
