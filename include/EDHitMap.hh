@@ -16,6 +16,9 @@
 #include "TFile.h"
 #include "TTree.h"
 #include "TH2D.h"
+#include "TH2Poly.h"
+#include "TMath.h"
+#include "TRandom.h"
 
 #include "Messaging.hh"
 
@@ -24,6 +27,14 @@
 class EDHitMap
 {
 private:
+
+	// For arc drawing
+	const int nBinsRadius = 5;          // Number of radial bins
+    const int nBinsAngle = 25;          // Number of angular bins (opening angle of 2π/200 each)
+    const int nSegments = 50;           // Number of segments to approximate the arc
+    const double radiusMin = 97.0;      // Minimum radius in cm
+    const double radiusMax = 109.0;     // Maximum radius in cm
+    const double angleIncrement = 2 * TMath::Pi() / 200; // Angle increment for each bin
 
     // File and tree information
     TFile m_curFile {};
@@ -34,9 +45,12 @@ private:
     short m_HG_sort[20][64], m_LG_sort[20][64];
     unsigned char m_board;
 
+    // Mapping 
     MapObj m_maps;
 
-   	std::vector<TH2D*> m_HitMap = {nullptr};
+    // Output vectors of plots 
+   	std::vector<TH2D*> m_HitMap = {nullptr};   	
+   	std::vector<TH2Poly*> m_ArcMap = {nullptr};
 
 
 public:
@@ -49,9 +63,15 @@ public:
     // ---- Methods ----
     void SetBranches();
     void FillHist(int evnt = -1);
-    void LoadMap(std::string ICCon, std::string ICJanus);
+   	void LoadMap(std::string ICCon, std::string ICJanus);
+
+    TH2Poly* CreateArcHist(std::string histName);
+    void FillArc(TH2Poly* hist, double phi, double R, double weight);
+ 
 
     std::vector<TH2D*> GetHitMap() { return m_HitMap; };
+    std::vector<TH2Poly*> GetArc() { return m_ArcMap; };
+
 };
 
 

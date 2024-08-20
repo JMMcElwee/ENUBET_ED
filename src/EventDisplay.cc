@@ -101,7 +101,7 @@ EventDisplay::EventDisplay(const TGWindow *p,UInt_t w,UInt_t h)
   fEvtNumFrame->AddFrame(fNEvent, new TGLayoutHints(kLHintsExpandX | kLHintsRight));
   fNEvent->SetNumber(m_Evnt);
   //fNEvent->SetState(TGNumberEntry::kNESInteger);
-  //fNEvent->Connect("ValueSet(Long_t)","EventDisplay", this, "DoDraw()");
+  fNEvent->Connect("ValueSet(Long_t)","EventDisplay", this, "ResetHitMap()");
 
   fRunInfo->Show();
   leftframe->AddFrame(fRunInfo, new TGLayoutHints(kLHintsCenterX | kLHintsExpandX));
@@ -278,6 +278,14 @@ EventDisplay::EventDisplay(const TGWindow *p,UInt_t w,UInt_t h)
   fZSlice->Connect("ValueSet(Long_t)","EventDisplay", this, "DoHitMap()");
   fZSlice->SetLimits(TGNumberEntry::kNELLimitMinMax,0,14);
 
+
+  // Show Arcs
+  fIsArc = new TGCheckButton(fHitMapGroup, "Draw as arcs");
+  fHitMapGroup->AddFrame(fIsArc, new TGLayoutHints(kLHintsLeft));
+  // Check out this bottom line, interesting!
+  //->Connect("Toggled(Bool_t)", "TGButton", fButton, "SetEnabled(Bool_t)");
+  fIsArc->Connect("Toggled(Bool_t)", "EventDisplay", this, "SetArc(Bool_t)");
+
   fHitMapGroup->Show();
   leftframe->AddFrame(fHitMapGroup, new TGLayoutHints(kLHintsCenterX | kLHintsExpandX));
   // -------------------------------------
@@ -290,6 +298,11 @@ EventDisplay::EventDisplay(const TGWindow *p,UInt_t w,UInt_t h)
   fDraw = new TGTextButton(leftframe,"&Draw");
   leftframe->AddFrame(fDraw, new TGLayoutHints(kLHintsCenterX | kLHintsCenterY));
   fDraw->Connect("Clicked()","EventDisplay",this,"DoDraw()");
+
+  // Add a Test Button to mess around with
+  //TGTextButton *fTest = new TGTextButton(leftframe,"&Test");
+  //leftframe->AddFrame(fTest, new TGLayoutHints(kLHintsCenterX | kLHintsCenterY));
+  //fTest->Connect("Clicked()","EventDisplay",this,"DoArc()");
  
   // Exit button
   TGTextButton *exit = new TGTextButton(leftframe,"&Exit",
@@ -508,6 +521,7 @@ void EventDisplay::DoHitMap()
     std::string infile = (std::string)fDatDir->GetText() +
                          (std::string)fRunPre->GetText() +
                          std::to_string(fNRun->GetIntNumber()) +
+                         (std::string)fRunSuf->GetText() + 
                          ".root";
     fHitMap = std::make_shared<EDHitMap>(infile.c_str());
     fHitMap->SetBranches();
@@ -525,10 +539,22 @@ void EventDisplay::DoHitMap()
 
   // Draw onto Canvas
   fEcanvas->GetCanvas()->cd();
-  fHitMap->GetHitMap()[(int)fZSlice->GetIntNumber()]->Draw("COLZ");
+  if (bIsArc)
+    fHitMap->GetArc()[(int)fZSlice->GetIntNumber()]->Draw("COLZ");
+  else 
+    fHitMap->GetHitMap()[(int)fZSlice->GetIntNumber()]->Draw("COLZ");
+
   fEcanvas->GetCanvas()->Update();
 }
 // - - - - - - - - - - - - - - - - - - - - 
+
+
+// - - - - - - - - - - - - - - - - - - - -
+void EventDisplay::SetArc(bool isArc)
+{
+  bIsArc = isArc;
+}
+// - - - - - - - - - - - - - - - - - - - -
 
 
 // - - - - - - - - - - - - - - - - - - - - 

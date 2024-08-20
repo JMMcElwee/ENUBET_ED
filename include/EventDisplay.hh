@@ -76,15 +76,20 @@ class EventDisplay : public TGMainFrame {
   std::shared_ptr<EDCherenkov> fCherenkov;
   TGStatusBar *fStatus[2];
 
-  // Plotting 
+  // ----- Plotting -------------
+
   TGNumberEntry *fPhi[2];
   TGNumberEntry *fZ[2]; 
 
-  TLine *fCherLine[2] = {nullptr};
+  TGCheckButton *fIsArc;
+  bool bIsArc = false;
+
+  // ----------------------------
 
   // Cherenkov info
   TGNumberEntry *fCherCuts[2];
   TGCheckButton *fCherShow;
+  TLine *fCherLine[2] = {nullptr};
 
   // Hit Map 
   TGNumberEntry *fZSlice;
@@ -115,6 +120,7 @@ public:
   void DoDraw();
   void DoHitMap();
   void DoWrite();
+  void DoArc();
   void Do2D(Int_t id);
 
   void SwapRawProcessed(Int_t cSwitch);
@@ -124,6 +130,9 @@ public:
 
   void ShowCherenkov(Bool_t bShow);
   void SelectCherenkov(Int_t id);
+
+  // ---- Plotting ----
+  void SetArc(bool isArc);
 
 
 
