@@ -1,83 +1,78 @@
 #include "EDMapping24.hh"
 
-MapObj CreateMap(TString ICConcFile, TString ICJanusFile)
-{
+// Reads the files and fills the maps
+MapObj CreateMap(TString ICConcFile, TString ICJanusFile){
+
 	MapObj maps;
 
-        if(!checkFileExistance(std::string(ICConcFile))){
-                std::cout<<LOG_ERROR<<"IC-Concentrator Mapping text file does not exist! Exiting progra\
-m."<<std::endl;
-                exit(0);
-        }
+	if(!checkFileExistance(std::string(ICConcFile))){
+		std::cout<<LOG_ERROR<<"IC-Concentrator Mapping text file does not exist! Exiting program."<<std::endl;
+		exit(0);
+	}
 
-        if(!checkFileExistance(std::string(ICJanusFile))){
-                std::cout<<LOG_ERROR<< "IC-Janus Mapping text file does not exist! Exiting program."<<s\
-td::endl;
-                exit(0);
-        }
+	if(!checkFileExistance(std::string(ICJanusFile))){
+		std::cout<<LOG_ERROR<< "IC-Janus Mapping text file does not exist! Exiting program."<<std::endl;
+		exit(0);
+	}
 
-        std::ifstream ICConcInfile(ICConcFile);
-        std::ifstream ICJanusInfile(ICJanusFile);
+	std::ifstream ICConcInfile(ICConcFile);
+	std::ifstream ICJanusInfile(ICJanusFile);
 
-        // Skipping the first row in the txt file                                                       
-        ICConcInfile.ignore(1000, '\n');
-        ICJanusInfile.ignore(1000, '\n');
+	// Skipping the first row in the txt file
+	ICConcInfile.ignore(1000, '\n');
+	ICJanusInfile.ignore(1000, '\n');
 
-        dataFormat ICConcData;
-        int IC = -1;
-        int Janus = -1;
+	dataFormat ICConcData;
+	std::string IC;
+	std::string Janus;
+	std::string IPAddress;
+	std::string ChainID;
 
-        std::map<int,int> ICJanusMap;
+	std::map<int,int> ICJanusMap;
 
-        // Reading the IC-Janus.txt                                                                     
-        while(ICJanusInfile >> IC >> Janus){
-                ICJanusMap[IC] = Janus;
-        }
+	// Reading the IC-Janus.txt
+	while(ICJanusInfile >> IC >> Janus >> IPAddress >> ChainID){
 
-        // Reading the IC-Concentrator.txt                                                              
-        while (ICConcInfile >> ICConcData.IC >> ICConcData.Concentratore >> ICConcData.A >> ICConcData.\
-R >> ICConcData.Phi >> ICConcData.Z >> ICConcData.YearOfMapping){
+		// Checks if the input is  a number as the IC boards not used are marked with and "X" or "/" or "-"
+		if(!isdigit(*Janus.data())) continue;
 
-                std::vector<int> coordinates;
-                std::vector<int> boardNAnode;
+		ICJanusMap[std::stoi(IC)] = std::stoi(Janus);
+	}
 
-                int i = -999;
-                if (ICConcData.R == "-" || ICConcData.Phi == "-" || ICConcData.Z == "-")
-                        continue;
-                else if (ICConcData.R == "0d")
-                        i = -1;
-                else if (ICConcData.R == "0u")
-                        i = 0;
-                else
-                        std::istringstream(ICConcData.R) >> i;
+	// Reading the IC-Concentrator.txt
+	while (ICConcInfile >> ICConcData.IC >> ICConcData.Concentratore >> ICConcData.A >> ICConcData.R >> ICConcData.Phi >> ICConcData.Z >> ICConcData.YearOfMapping){
 
-                coordinates.push_back(i+1);
+		std::vector<int> coordinates;
+		std::vector<int> boardNAnode;
 
-                std::istringstream(ICConcData.Phi) >> i;
+		if (ICJanusMap.find(ICConcData.IC) == ICJanusMap.end()) continue;
 
-                coordinates.push_back(i);
+		if (ICConcData.R == "-" || ICConcData.Phi == "-" || ICConcData.Z == "-")
+			continue;
+		else if (ICConcData.R == "0d")
+			coordinates.push_back(0);
+		else if (ICConcData.R == "0u")
+			coordinates.push_back(1);
+		else
+			coordinates.push_back(std::stoi(ICConcData.R)+1);
 
-                std::istringstream(ICConcData.Z) >> i;
+		coordinates.push_back(std::stoi(ICConcData.Phi));
 
-                coordinates.push_back(i);
+		coordinates.push_back(std::stoi(ICConcData.Z));
 
-                i = ICJanusMap.at(ICConcData.IC);
+		boardNAnode.push_back(ICJanusMap.at(ICConcData.IC));
 
-                boardNAnode.push_back(i);
+		boardNAnode.push_back(std::stoi(ICConcData.A));
 
-                std::istringstream(ICConcData.A) >> i;
+		maps.AnodeCoord[boardNAnode] = coordinates;
+		maps.CoordAnode[coordinates] = boardNAnode;
 
-                boardNAnode.push_back(i);
+		boardNAnode.clear();
+		coordinates.clear();
 
-                maps.AnodeCoord[boardNAnode] = coordinates;
-                maps.CoordAnode[coordinates] = boardNAnode;
+	}
 
-                boardNAnode.clear();
-                coordinates.clear();
-
-        }
-
-        ICConcInfile.close();
-        ICJanusInfile.close();
-        return maps;
+	ICConcInfile.close();
+	ICJanusInfile.close();
+	return maps;
 }

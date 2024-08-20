@@ -37,9 +37,10 @@ class EDHist
 {
 
 protected:
-    // File and tree information
+    // ----- ROOT File Input -----
     TFile m_curFile {};
     TTree *m_curTree {nullptr};
+    // ---------------------------
 
     bool m_IsDrawn = false; 
 
