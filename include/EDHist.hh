@@ -42,6 +42,7 @@ protected:
     TTree *m_curTree {nullptr};
     // ---------------------------
 
+
     bool m_IsDrawn = false; 
 
     std::string m_dir = "/Users/jmcelwee/Documents/testbeam2023/data/";

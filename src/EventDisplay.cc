@@ -376,6 +376,10 @@ void EventDisplay::SwapRawProcessed(Int_t cSwitch)
     the values differently.
   */
 
+  // Change the data type and turn off draw
+  m_datatype = (ECanvas)cSwitch;
+  bHitMapDrawn = false;
+
   std::string DrawFunc, datDir, runPre, runSuf, runNum, mapDir, mapJanus;
 
   // Reconnect draw button 
@@ -459,14 +463,14 @@ void EventDisplay::DoDraw() {
 
   // ---- Main Display Canvas ---- 
 
-  fDisplay = std::make_shared<EDDisplay>(iFile.c_str(), "t",
+  fDisplay = std::make_shared<EDProcessed>(iFile.c_str(), "t",
                            (int)fFERS->GetIntNumber());
   fDisplay->SetBranches();
   fDisplay->LoadMap(fMapName->GetText(), fMapDir->GetText());
 
   int Phi_temp[2] = {(int) fPhi[0]->GetIntNumber(), (int)fPhi[1]->GetIntNumber()};
   int Z_temp[2] = {(int) fZ[0]->GetIntNumber(), (int)fZ[1]->GetIntNumber()};
-  fDisplay->FillHist2((int)fNEvent->GetIntNumber(), Phi_temp, Z_temp);
+  fDisplay->FillHist((int)fNEvent->GetIntNumber());
 
   std::string evtOut = "Event " + std::to_string(fNEvent->GetIntNumber());
   fStatus[1]->SetText(evtOut.c_str(), 0);
@@ -523,7 +527,18 @@ void EventDisplay::DoHitMap()
                          std::to_string(fNRun->GetIntNumber()) +
                          (std::string)fRunSuf->GetText() + 
                          ".root";
-    fHitMap = std::make_shared<EDHitMap>(infile.c_str());
+
+    switch (m_datatype)
+    {
+    case kRaw:
+      fHitMap = std::make_shared<EDRaw>(infile.c_str());
+      break;
+    case kEvtMatch:
+      fHitMap = std::make_shared<EDEvtMatch>(infile.c_str());
+      break;
+    case kProcessed:
+      break;
+    }
     fHitMap->SetBranches();
 
     // Load IC to Concentrator and IC to Janus maps

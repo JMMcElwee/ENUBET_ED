@@ -38,68 +38,13 @@
 
 #include "EDHist.hh"
 #include "EDHitMap.hh"
-#include "EDDisplay.hh"
+#include "EDRaw.hh"
+#include "EDEvtMatch.hh"
+#include "EDProcessed.hh"
 #include "EDCherenkov.hh"
 
 
 class EventDisplay : public TGMainFrame {
-
-  private:
-
-  // Canvas to print plots on
-  TRootEmbeddedCanvas *fEcanvas;
-  TRootEmbeddedCanvas *fCherCanvas;
-
-  // ----- File information -----
-
-  // Buttons 
-  TGTextButton *fDraw;
-
-  // Text Entry
-  TGTextEntry   *fDatDir;
-  TGTextEntry   *fRunPre;
-  TGTextEntry   *fRunSuf;
-  TGNumberEntry *fNRun;
-  TGNumberEntry *fNEvent;
-  int m_Evnt = 0;
-
-  // ----------------------------
-
-  // Mapping Info
-  TGTextEntry   *fMapDir;
-  TGTextEntry   *fMapName;
-  TGNumberEntry *fFERS;
-  TGNumberEntry *fAnodes;
-
-  // Event display
-  std::shared_ptr<EDDisplay>   fDisplay;
-  std::shared_ptr<EDCherenkov> fCherenkov;
-  TGStatusBar *fStatus[2];
-
-  // ----- Plotting -------------
-
-  TGNumberEntry *fPhi[2];
-  TGNumberEntry *fZ[2]; 
-
-  TGCheckButton *fIsArc;
-  bool bIsArc = false;
-
-  // ----------------------------
-
-  // Cherenkov info
-  TGNumberEntry *fCherCuts[2];
-  TGCheckButton *fCherShow;
-  TLine *fCherLine[2] = {nullptr};
-
-  // Hit Map 
-  TGNumberEntry *fZSlice;
-  std::shared_ptr<EDHitMap> fHitMap{nullptr}; 
-  bool          bHitMapDrawn = false;
-
-
-
-  std::string iFile;
-
 
 public:
 
@@ -133,6 +78,64 @@ public:
 
   // ---- Plotting ----
   void SetArc(bool isArc);
+
+
+private:
+
+  // Canvas to print plots on
+  TRootEmbeddedCanvas *fEcanvas;
+  TRootEmbeddedCanvas *fCherCanvas;
+
+  // ----- File information -----
+
+  // Buttons 
+  TGTextButton *fDraw;
+
+  // Text Entry
+  TGTextEntry   *fDatDir;
+  TGTextEntry   *fRunPre;
+  TGTextEntry   *fRunSuf;
+  TGNumberEntry *fNRun;
+  TGNumberEntry *fNEvent;
+  int m_Evnt = 0;
+
+  // ----------------------------
+
+  // Mapping Info
+  TGTextEntry   *fMapDir;
+  TGTextEntry   *fMapName;
+  TGNumberEntry *fFERS;
+  TGNumberEntry *fAnodes;
+
+  // Event display
+  std::shared_ptr<EDProcessed> fDisplay;
+  std::shared_ptr<EDCherenkov> fCherenkov;
+  TGStatusBar *fStatus[2];
+
+  // ----- Plotting -------------
+
+  TGNumberEntry *fPhi[2];
+  TGNumberEntry *fZ[2]; 
+
+  TGCheckButton *fIsArc;
+  bool bIsArc = false;
+
+  // ----------------------------
+
+  // Cherenkov info
+  TGNumberEntry *fCherCuts[2];
+  TGCheckButton *fCherShow;
+  TLine *fCherLine[2] = {nullptr};
+
+  // Hit Map 
+  TGNumberEntry *fZSlice;
+  std::shared_ptr<EDHitMap> fHitMap{nullptr}; 
+  ECanvas m_datatype = kProcessed;
+  bool  bHitMapDrawn = false;
+
+
+
+  std::string iFile;
 
 
 
