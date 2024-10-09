@@ -68,103 +68,91 @@ void EDProcessed::SetBranches()
 // - - - - - - - - - - - - - - - - - - - - 
 void EDProcessed::FillHist(int evnt)
 {
-    int Phi[2] = {-8, 17};
+
+    // Default values for all of the events
+    long int entryBounds[2] = {0,(long int)m_curTree->GetEntries()};
+//    long int entryBounds[2] = {0,50000};
+
+    std::cout << evnt << std::endl;
+
+    if (evnt >= 0) 
+    { 
+        entryBounds[0] = evnt; 
+        entryBounds[1] = evnt + 1;
+    }
+
     int Z[2] = {0, 14};
-
-    std::vector<THV> hist_hg(m_FERS, THV(m_Anodes,nullptr));
-    std::vector<THV> hist_lg(m_FERS, THV(m_Anodes,nullptr));
-    char histName[12];
-
-    //std::vector<int> evnt_arr(m_curTree->GetEntries());
-    //std::iota(evnt_arr.begin(),evnt_arr.end(), 1);
-
-    // --- Set event array size ---
-    int evnt_arr_size;
-    if (evnt < 0) evnt_arr_size = m_curTree->GetEntries();
-    else evnt_arr_size = 1;
-    std::vector<int> evnt_arr(evnt_arr_size);
-
-    if (evnt < 0) std::iota(evnt_arr.begin(),evnt_arr.end(), 1);
-    else evnt_arr.at(0) = evnt;
-
-    for (int FERS = 0; FERS < m_FERS; FERS++) // FERS  
-        for (int anode = 0; anode < m_Anodes; anode++)
-        { // Anode
-
-            // --- Set histograms ---                                                                                   
-            snprintf(histName,12,"b%i_a%i_hg",FERS,anode); // Avoid naming error
-            hist_hg[FERS][anode] = new TH1D(histName,histName,100,0,8000);
-            snprintf(histName,12,"b%i_a%i_lg",FERS,anode);
-            hist_lg[FERS][anode] = new TH1D(histName,histName,100,0,8000);
-
-            // --- Check channel exists --- 
-            std::vector<int> channelVec = {FERS,anode};
-            if (m_anodeMap.find(channelVec) != m_anodeMap.end())
-                for (int i : evnt_arr)
-                {
-                    m_curTree->GetEntry(i);
-
-                    int channel = FERS*m_Anodes + anode;
-                    hist_hg[FERS][anode]->Fill(m_HG_proc[channel]);
-                    hist_lg[FERS][anode]->Fill(m_LG_proc[channel]);
-                } // Event 
-        } // Anode
-
-
-    std::string edName = "Run Number: " + std::to_string(18)
-                     + " -- Event: " + std::to_string(evnt);
-    TH3D *ED3D = new TH3D(edName.c_str(),edName.c_str(),
+    int Phi[2] = {-8, 17};
+    TH3D *ED3D = new TH3D("Processed 3D",";Z;#phi;",
                           Z[1]-Z[0]+1, Z[0]-0.5, Z[1]+0.5,
                           Phi[1]-Phi[0]+1, Phi[0]-0.5, Phi[1]+0.5,
                           5, -0.5, 4.5);
-//                          3, 11.5, 14.5,
-//                          18, -0.5, 17.5,
-//                          5, -0.5, 4.5);
-
-    for (int r = 4; r >= 0; r--) // Currently fixed                                                                 
-        for (int z = Z[0]; z <= Z[1]; z++) // Max z currently fixed                                        
-            for (int phi = Phi[0]; phi <= Phi[1]; phi++)
-                if (m_coordMap.find(std::vector<int>{r,phi,z}) != m_coordMap.end())
-                {
-                    // --- Grab the correct 1D histogram ---                                                              
-                    std::vector<int> BAPos = m_coordMap[std::vector<int>{r,phi,z}];
-                    //std::cout << BAPos[0] << " " << BAPos[1] << std::endl;                                        
-
-                    if (m_FERS > BAPos[0])
-                    {
-                        //              std::cout << r << " " << z << " " << phi << std::endl;                              
-                        TH1D *holdLG = (TH1D*) hist_lg[BAPos.at(0)][BAPos.at(1)];
-                        double hist_max_LG = holdLG->GetXaxis()->GetBinCenter(holdLG->GetMaximumBin());
-                        // This should always be over 200 for the later cut...                                              
-                        //if (inputs->Event() < 0)
-                        hist_max_LG = holdLG->Integral(holdLG->FindBin(200),holdLG->FindBin(7500));
-
-                        TH1D *holdHG = (TH1D*) hist_hg[BAPos.at(0)][BAPos.at(1)];
-                        double hist_max_HG = holdHG->GetXaxis()->GetBinCenter(holdHG->GetMaximumBin());
-                        //if (inputs->Event() < 0)
-                        hist_max_HG = holdHG->Integral(holdHG->FindBin(500),holdHG->FindBin(7500));
-
-
-                        if (r <= 1 && hist_max_HG > 500) ED3D->Fill(z,phi,r,hist_max_HG);
-                        else if (r > 1 && hist_max_LG > 200) ED3D->Fill(z,phi,r,hist_max_LG);
-                        else ED3D->Fill(z,phi,r,0.1);
-                    }
-                    else ED3D->Fill(z,phi,r,0.1);
-                    
-                }
-
-    gStyle->SetOptStat(0);
-
-    // --- Change axis labels ---                                                                                   
+    std::vector<TH2D*> hitmap;
+    std::vector<TH2Poly*> ArcMap;
     char const *range[5] = {"T_{0d}","T_{0u}","T_{1}","T_{2}","T_{3}"};
-    ED3D->GetZaxis()->SetNdivisions(-5);
-    for (int i=0;i<5;i++) ED3D->GetZaxis()->SetBinLabel(i+1,range[i]);
-    ED3D->GetXaxis()->SetTitle("Z");
-    ED3D->GetXaxis()->CenterTitle(true);
-    ED3D->GetYaxis()->SetTitle("#phi");
-    ED3D->GetYaxis()->CenterTitle(true);
+    for (int z = 0; z < 15; z++)
+    {
+        std::string HistName = "Hit Map " + std::to_string(z);
+        hitmap.push_back(new TH2D(HistName.c_str(),";#phi;",26, -8.5, 17.5,5, -0.5, 4.5));
 
-    ED3D->Copy(*EventDisplay);
+        //hitmap.at(z)->GetZaxis()->SetRangeUser(0,8192);
+        hitmap.at(z)->GetYaxis()->SetNdivisions(-5);
+        for (int i=0;i<5;i++) hitmap.at(z)->GetYaxis()->SetBinLabel(i+1,range[i]);
+
+        ArcMap.push_back(CreateArcHist((HistName+" Arc").c_str()));
+    }
+
+
+    for (int entry = entryBounds[0]; entry < entryBounds[1]; entry++)
+    {
+        // Load event                                                                                   
+        m_curTree->GetEntry(entry);
+
+        if (entry % 10000 == 0) std::cout << entry << "/" 
+                                << entryBounds[1] << " events." << std::endl; 
+
+        // Loop over all anodes in list
+        for (int board=0; board < 20; board++)   
+            for (int anode=0; anode < 60; anode++)
+                if (m_anodeMap.find(std::vector<int>{(int)board,anode}) != m_anodeMap.end())
+                {
+                    int channel = board*60 + anode;
+
+                    int TVal = m_anodeMap[std::vector<int>{(int)board,anode}][0];
+                    int PhiVal = m_anodeMap[std::vector<int>{(int)board,anode}][1];
+
+                    int ZLayer = 0;
+                    for (TH2D* histogram : hitmap) 
+                    {
+                        if (m_anodeMap[std::vector<int>{(int)board,anode}][2] == ZLayer)
+                        {
+                            if (m_HG_proc[channel] > 0 && m_LG_proc[channel] > 0)
+                            {
+                                if (TVal <= 1)
+                                {
+                                    histogram->Fill(PhiVal, TVal, m_HG_proc[channel]);
+                                    FillArc(ArcMap.at(ZLayer),PhiVal, TVal, m_HG_proc[channel]);
+                                    ED3D->Fill(ZLayer, PhiVal, TVal, m_HG_proc[channel]);
+                                }
+                                else
+                                {
+                                    histogram->Fill(PhiVal, TVal, m_LG_proc[channel]);
+                                    FillArc(ArcMap.at(ZLayer),PhiVal, TVal, m_LG_proc[channel]);
+                                    ED3D->Fill(ZLayer, PhiVal, TVal, m_LG_proc[channel]);
+                                }
+                            }
+                        }
+                        ZLayer++;
+                    }
+
+                }
+    }
+
+
+    m_HitMap = hitmap;
+    m_ArcMap = ArcMap;
+    ED3D->Copy(*m_EventDisplay);
+
 
 }
 // - - - - - - - - - - - - - - - - - - - - 

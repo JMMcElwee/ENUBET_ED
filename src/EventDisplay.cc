@@ -26,7 +26,9 @@ EventDisplay::EventDisplay(const TGWindow *p,UInt_t w,UInt_t h)
   AddFrame(rightframe,new TGLayoutHints(kLHintsExpandX | kLHintsExpandY));
 
 
-  // --- Run information button group ---- 
+  // =============================================
+  // ===== RUN INFO ==============================
+
   TGVButtonGroup *fRunInfo = new TGVButtonGroup(leftframe, "Data Information");
 
 
@@ -85,6 +87,7 @@ EventDisplay::EventDisplay(const TGWindow *p,UInt_t w,UInt_t h)
   new TGRadioButton(gDataSel, "Processed", kProcessed);
   new TGRadioButton(gDataSel, "Raw", kRaw);
   new TGRadioButton(gDataSel, "Evt. Match", kEvtMatch);
+  new TGRadioButton(gDataSel, "MC", kSimulation);
   gDataSel->SetButton(kProcessed); 
   gDataSel->Connect("Pressed(Int_t)", "EventDisplay", this,
                        "SwapRawProcessed(Int_t)");
@@ -105,28 +108,69 @@ EventDisplay::EventDisplay(const TGWindow *p,UInt_t w,UInt_t h)
 
   fRunInfo->Show();
   leftframe->AddFrame(fRunInfo, new TGLayoutHints(kLHintsCenterX | kLHintsExpandX));
-  // -------------------------------------
+
+  // =============================================
 
 
 
-  // ---- Event Display Selection --------
-  TGButtonGroup *fDimension = new TGButtonGroup(leftframe, "Dimension");
+  // =============================================
+  // ===== EVENT DISPLAY =========================
 
-  new TGRadioButton(fDimension, "2D Phi-R", 1);
-  new TGRadioButton(fDimension, "2D Phi-Z", 2);
-  new TGRadioButton(fDimension, "2D Z-R", 3);
-  new TGRadioButton(fDimension, "3D", 0);
-  fDimension->SetButton(0); 
-  fDimension->Connect("Pressed(Int_t)", "EventDisplay", this,
+  TGHButtonGroup *fDimension = new TGHButtonGroup(leftframe, "Dimension");
+
+  // ----- Dimension Type -----
+  f3DType = new TGVButtonGroup(fDimension);
+  fDimension->AddFrame(f3DType, new TGLayoutHints(kLHintsLeft));
+
+  new TGRadioButton(f3DType, "2D Phi-R", 1);
+  new TGRadioButton(f3DType, "2D Phi-Z", 2);
+  new TGRadioButton(f3DType, "2D Z-R", 3);
+  new TGRadioButton(f3DType, "3D", 0);
+  f3DType->SetButton(0); 
+  f3DType->Connect("Pressed(Int_t)", "EventDisplay", this,
                        "Do2D(Int_t)");
+
+
+  // ----- Slice things -----
+  TGVerticalFrame *f2DSliceFrame = new TGVerticalFrame(fDimension, 60, 30, kLHintsCenterX);
+  fDimension->AddFrame(f2DSliceFrame);
+
+  TGCheckButton *fIs3D = new TGCheckButton(f2DSliceFrame, "2D Slices");
+  f2DSliceFrame->AddFrame(fIs3D, new TGLayoutHints(kLHintsRight));
+  fIs3D->Connect("Toggled(Bool_t)", "EventDisplay", this, "Set2D(Bool_t)");
+
+  // Z Slice 
+  lZSlice = new TGLabel(f2DSliceFrame, "Z Slice");
+  f2DSliceFrame->AddFrame(lZSlice, new TGLayoutHints(kLHintsLeft | kLHintsCenterY));
+  lZSlice->Disable(true);
+
+  fZSlice = new TGNumberEntry(f2DSliceFrame);
+  f2DSliceFrame->AddFrame(fZSlice, new TGLayoutHints(kLHintsCenterX));
+  fZSlice->Connect("ValueSet(Long_t)","EventDisplay", this, "DoDraw()");
+  fZSlice->SetLimits(TGNumberEntry::kNELLimitMinMax,0,14);
+  fZSlice->SetText("14");
+  fZSlice->SetState(false);
+
+
+  // Show Arcs
+  fIsArc = new TGCheckButton(f2DSliceFrame, "Draw as arcs");
+  f2DSliceFrame->AddFrame(fIsArc, new TGLayoutHints(kLHintsLeft));
+  // Check out this bottom line, interesting!
+  //->Connect("Toggled(Bool_t)", "TGButton", fButton, "SetEnabled(Bool_t)");
+  fIsArc->Connect("Toggled(Bool_t)", "EventDisplay", this, "SetArc(Bool_t)");
+  fIsArc->SetEnabled(false);
+
 
   fDimension->Show();
   leftframe->AddFrame(fDimension, new TGLayoutHints(kLHintsCenterX | kLHintsExpandX));
-  // -------------------------------------
+
+  // =============================================
 
 
 
-  // ---- Cherenkov information ----------
+  // =============================================
+  // ===== CHERENKOV =============================
+
   TGHButtonGroup *fCherGroup = new TGHButtonGroup(leftframe, "Cherenkov");
 
   TGVerticalFrame *fCherCutFrame = new TGVerticalFrame(fCherGroup, 150, 200, kLHintsExpandX | kLHintsExpandY);
@@ -163,11 +207,14 @@ EventDisplay::EventDisplay(const TGWindow *p,UInt_t w,UInt_t h)
 
   fCherGroup->Show();
   leftframe->AddFrame(fCherGroup, new TGLayoutHints(kLHintsCenterX | kLHintsExpandX));
-  // -------------------------------------
+
+  // =============================================
 
 
 
-  // ---- Plotting information -----------
+  // =============================================
+  // ===== PLOTTING ==============================
+
   TGVButtonGroup *fPlotting = new TGVButtonGroup(leftframe, "Plotting");
 
   // Phi
@@ -207,11 +254,13 @@ EventDisplay::EventDisplay(const TGWindow *p,UInt_t w,UInt_t h)
 
   fPlotting->Show();
   leftframe->AddFrame(fPlotting, new TGLayoutHints(kLHintsCenterX | kLHintsExpandX));
-  // -------------------------------------
+  // =============================================
 
 
 
-  // ---- Mapping information ------------
+  // =============================================
+  // ===== MAPPING ===============================
+
   TGVButtonGroup *fMapGroup = new TGVButtonGroup(leftframe, "Mapping");
 
   // Map directory
@@ -248,47 +297,10 @@ EventDisplay::EventDisplay(const TGWindow *p,UInt_t w,UInt_t h)
   gFERS->AddFrame(fFERS, new TGLayoutHints(kLHintsLeft | kLHintsExpandX));
   fFERS->SetText("9");
 
-  // Anode Number 
-  /*TGHorizontalFrame *gAnodes = new TGHorizontalFrame(fMapGroup, 300, 50, kLHintsCenterX | kLHintsBottom);
-  fMapGroup->AddFrame(gAnodes, new TGLayoutHints(kLHintsExpandX | kLHintsCenterX));
-
-  TGLabel *lAnodes = new TGLabel(gAnodes, "Anodes");
-  gAnodes->AddFrame(lAnodes, new TGLayoutHints(kLHintsCenterY));
-
-  fAnodes = new TGNumberEntry(gAnodes);
-  gAnodes->AddFrame(fAnodes, new TGLayoutHints(kLHintsCenterY | kLHintsRight));
-  fAnodes->SetText("60");*/
-
   fMapGroup->Show();
   leftframe->AddFrame(fMapGroup, new TGLayoutHints(kLHintsCenterX | kLHintsExpandX));
-  // -------------------------------------
 
-
-
-  // ---- Hit Map ------------------------
-  TGVButtonGroup *fHitMapGroup = new TGVButtonGroup(leftframe, "Raw Hit Map");
-
-  // Z Slice 
-  TGLabel *lZSlice = new TGLabel(fHitMapGroup, "Z Slice");
-  fHitMapGroup->AddFrame(lZSlice, new TGLayoutHints(kLHintsLeft | kLHintsCenterY));
-
-  fZSlice = new TGNumberEntry(fHitMapGroup);
-  fHitMapGroup->AddFrame(fZSlice, new TGLayoutHints(kLHintsCenterX));
-  fZSlice->SetText("14");
-  fZSlice->Connect("ValueSet(Long_t)","EventDisplay", this, "DoHitMap()");
-  fZSlice->SetLimits(TGNumberEntry::kNELLimitMinMax,0,14);
-
-
-  // Show Arcs
-  fIsArc = new TGCheckButton(fHitMapGroup, "Draw as arcs");
-  fHitMapGroup->AddFrame(fIsArc, new TGLayoutHints(kLHintsLeft));
-  // Check out this bottom line, interesting!
-  //->Connect("Toggled(Bool_t)", "TGButton", fButton, "SetEnabled(Bool_t)");
-  fIsArc->Connect("Toggled(Bool_t)", "EventDisplay", this, "SetArc(Bool_t)");
-
-  fHitMapGroup->Show();
-  leftframe->AddFrame(fHitMapGroup, new TGLayoutHints(kLHintsCenterX | kLHintsExpandX));
-  // -------------------------------------
+  // =============================================
 
 
 
@@ -380,17 +392,13 @@ void EventDisplay::SwapRawProcessed(Int_t cSwitch)
   m_datatype = (ECanvas)cSwitch;
   bHitMapDrawn = false;
 
-  std::string DrawFunc, datDir, runPre, runSuf, runNum, mapDir, mapJanus;
-
-  // Reconnect draw button 
-  fDraw->Disconnect("Clicked()");  
+  std::string datDir, runPre, runSuf, runNum, mapDir, mapJanus; 
 
   switch(cSwitch) 
   {
 
   // Raw data, no processing
   case kRaw:
-    DrawFunc = "DoHitMap()";
     datDir = "/Users/jmcelwee/Documents/testbeam2023/data/2024/RAW/";
     runPre = "Run";
     runSuf = "_list";
@@ -401,7 +409,6 @@ void EventDisplay::SwapRawProcessed(Int_t cSwitch)
 
   // Processed through data chain
   case kProcessed:
-    DrawFunc = "DoDraw()";
     datDir = "/Users/jmcelwee/Documents/testbeam2023/data/2023/";
     runPre = "run36";
     runSuf = "";
@@ -412,7 +419,6 @@ void EventDisplay::SwapRawProcessed(Int_t cSwitch)
 
   // Event matched using Luca's code
   case kEvtMatch:
-    DrawFunc = "DoHitMap()";
     datDir = "/Users/jmcelwee/Documents/testbeam2023/data/2024/RAW/";
     runPre = "Run";
     runSuf = "_sorted";
@@ -421,9 +427,17 @@ void EventDisplay::SwapRawProcessed(Int_t cSwitch)
     mapJanus = "IC-Janus.txt";
     break;
 
+  case kSimulation:
+    datDir = "/Users/jmcelwee/Documents/testbeam2023/data/MC/";
+    runPre = "right_side_e-_0.5GeV";
+    runSuf = "";
+    runNum = "";
+    mapDir = "";
+    mapJanus = "";
+    break;
+
   // Default value is the processed
   default:
-    DrawFunc = "DoDraw()";
     datDir = "/Users/jmcelwee/Documents/testbeam2023/data/2023/";
     runPre = "run36";
     runSuf = "";
@@ -433,7 +447,6 @@ void EventDisplay::SwapRawProcessed(Int_t cSwitch)
   }
 
   // Set values for output
-  fDraw->Connect("Clicked()","EventDisplay",this,DrawFunc.c_str());
   fDatDir->SetText(datDir.c_str());
   fRunPre->SetText(runPre.c_str());
   fRunSuf->SetText(runSuf.c_str());
@@ -442,6 +455,23 @@ void EventDisplay::SwapRawProcessed(Int_t cSwitch)
   fMapName->SetText(mapJanus.c_str());
 }
 // - - - - - - - - - - - - - - - - - - - - 
+
+
+// - - - - - - - - - - - - - - - - - - - - 
+
+// - - - - - - - - - - - - - - - - - - - - 
+
+
+// - - - - - - - - - - - - - - - - - - - - 
+void EventDisplay::Set2D(Bool_t is2D)
+{
+  lZSlice->Disable(!is2D);
+  fZSlice->SetState(is2D);
+  fIsArc->SetEnabled(is2D);
+  f3DType->SetState(!is2D);
+  bIs2D = is2D;
+}
+// - - - - - - - - - - - - - - - - - - - -
 
 //**********************************************************
 
@@ -453,70 +483,9 @@ void EventDisplay::SwapRawProcessed(Int_t cSwitch)
 // - - - - - - - - - - - - - - - - - - - - 
 void EventDisplay::DoDraw() {
 
-  gStyle->SetOptStat(0);
-
-  // Cast GetText to string in order to add together
-  iFile = (std::string)fDatDir->GetText() + (std::string)(fRunPre->GetText())
-        + std::to_string(fNRun->GetIntNumber()) + ".root";
-  fStatus[0]->SetText(iFile.c_str());
-
-
-  // ---- Main Display Canvas ---- 
-
-  fDisplay = std::make_shared<EDProcessed>(iFile.c_str(), "t",
-                           (int)fFERS->GetIntNumber());
-  fDisplay->SetBranches();
-  fDisplay->LoadMap(fMapName->GetText(), fMapDir->GetText());
-
-  int Phi_temp[2] = {(int) fPhi[0]->GetIntNumber(), (int)fPhi[1]->GetIntNumber()};
-  int Z_temp[2] = {(int) fZ[0]->GetIntNumber(), (int)fZ[1]->GetIntNumber()};
-  fDisplay->FillHist((int)fNEvent->GetIntNumber());
-
-  std::string evtOut = "Event " + std::to_string(fNEvent->GetIntNumber());
-  fStatus[1]->SetText(evtOut.c_str(), 0);
-
-
-
-  TCanvas *fCanvas = fEcanvas->GetCanvas();
-  fCanvas->cd();
-  gPad->SetPhi(-30);
-  fDisplay->GetEventDisplay()->Draw("BOX2");
-  fCanvas->Update();
-  fDisplay->SetDrawn(true);
-
-  // -----------------------------
-
-
-  // ---- Cherenkov Canvas ----
-
-  fCherenkov = std::make_shared<EDCherenkov>(iFile.c_str(), "t");
-  fCherenkov->SetBranches();
-  fCherenkov->FillHist();
-
-  fCherCanvas->GetCanvas()->cd();
-  fCherCanvas->GetCanvas()->SetLogz(1);
-  gPad->SetTopMargin(0.04);
-  gPad->SetLeftMargin(0.12);
-
-  fCherenkov->GetCherPH()->Draw("COLZ");
-  fCherCanvas->GetCanvas()->Update();
-
-  // --------------------------
-
-}
-// - - - - - - - - - - - - - - - - - - - - 
-
-//**********************************************************
-
-
-//**********************************************************
-//***** HITMAP *********************************************
-
-// - - - - - - - - - - - - - - - - - - - - 
-void EventDisplay::DoHitMap()
-{
   // Remove stat box 
   gStyle->SetOptStat(0);
+  bool bRunCherenkov = false; 
 
   // If the map is already drawn, don't redraw
   if (!bHitMapDrawn)
@@ -527,26 +496,64 @@ void EventDisplay::DoHitMap()
                          std::to_string(fNRun->GetIntNumber()) +
                          (std::string)fRunSuf->GetText() + 
                          ".root";
+    if (m_datatype == kSimulation) 
+      infile = (std::string)fDatDir->GetText() + (std::string)fRunPre->GetText() + ".root";
+    fStatus[0]->SetText(infile.c_str());
+
+
+    EDHitMap::EMapYear mapYear = EDHitMap::k2024;
 
     switch (m_datatype)
-    {
-    case kRaw:
-      fHitMap = std::make_shared<EDRaw>(infile.c_str());
-      break;
-    case kEvtMatch:
-      fHitMap = std::make_shared<EDEvtMatch>(infile.c_str());
-      break;
-    case kProcessed:
-      break;
+      {
+      case kRaw:
+        fDisplay = std::make_shared<EDRaw>(infile.c_str(), "t",
+                                          (int)fFERS->GetIntNumber());
+        break;
+      case kEvtMatch:
+        fDisplay = std::make_shared<EDEvtMatch>(infile.c_str(),"t",
+                                                (int)fFERS->GetIntNumber());
+        break;
+      case kProcessed:
+        fDisplay = std::make_shared<EDProcessed>(infile.c_str(),"t",
+                                                 (int)fFERS->GetIntNumber());
+        mapYear = EDHitMap::k2023;
+        bRunCherenkov = true;
+        break;
+      case kSimulation:
+        fDisplay = std::make_shared<EDSim>(infile.c_str(),"Demo");
+        mapYear = EDHitMap::kMC;
+        break;
+      default:
+        fDisplay = std::make_shared<EDRaw>(infile.c_str(), "t",
+                                          (int)fFERS->GetIntNumber());        
+        break;
+      }
+
+
+    // ---- Main Display Canvas ---- 
+
+    fDisplay->SetBranches();
+    fDisplay->LoadMap(fMapName->GetText(), fMapDir->GetText(), mapYear);  
+
+    //int Phi_temp[2] = {(int) fPhi[0]->GetIntNumber(), (int)fPhi[1]->GetIntNumber()};
+    //int Z_temp[2] = {(int) fZ[0]->GetIntNumber(), (int)fZ[1]->GetIntNumber()};
+    fDisplay->FillHist((int)fNEvent->GetIntNumber());
+
+    std::string evtOut = "Event " + std::to_string(fNEvent->GetIntNumber());
+    fStatus[1]->SetText(evtOut.c_str(), 0);
+
+    // -----------------------------
+
+
+    // ---- Display Cherenkov ------
+
+    if (bRunCherenkov){
+      fCherenkov = std::make_shared<EDCherenkov>(infile.c_str(), "t");
+      fCherenkov->SetBranches();
+      fCherenkov->FillHist();
     }
-    fHitMap->SetBranches();
 
-    // Load IC to Concentrator and IC to Janus maps
-    fHitMap->LoadMap(( (std::string)fMapDir->GetText() + "IC-Concentrator.txt").c_str(),
-                     ( (std::string)fMapDir->GetText() + (std::string)fMapName->GetText()).c_str());
-
-    // Fill histograms for the certain event
-    fHitMap->FillHist((int)fNEvent->GetIntNumber());
+    // -----------------------------
 
     // Check if built 
     bHitMapDrawn = true;
@@ -554,15 +561,41 @@ void EventDisplay::DoHitMap()
 
   // Draw onto Canvas
   fEcanvas->GetCanvas()->cd();
-  if (bIsArc)
-    fHitMap->GetArc()[(int)fZSlice->GetIntNumber()]->Draw("COLZ");
+
+  if (bIs2D)
+  {
+    if (bIsArc)
+      fDisplay->GetArc()[(int)fZSlice->GetIntNumber()]->Draw("COLZ");
+    else 
+      fDisplay->GetHitMap()[(int)fZSlice->GetIntNumber()]->Draw("COLZ");
+  }
   else 
-    fHitMap->GetHitMap()[(int)fZSlice->GetIntNumber()]->Draw("COLZ");
+  {
+    gPad->SetPhi(-30);
+    fDisplay->GetEventDisplay()->Draw("BOX2");
+  }
 
   fEcanvas->GetCanvas()->Update();
+  fDisplay->SetDrawn(true);
+
+
+  // ---- Cherenkov Canvas ----
+  if (bRunCherenkov) {
+    fCherCanvas->GetCanvas()->cd();
+    fCherCanvas->GetCanvas()->SetLogz(1);
+    gPad->SetTopMargin(0.04);
+    gPad->SetLeftMargin(0.12);
+
+    fCherenkov->GetCherPH()->Draw("COLZ");
+    fCherCanvas->GetCanvas()->Update();
+
+  // --------------------------
+  }
+
 }
 // - - - - - - - - - - - - - - - - - - - - 
 
+//**********************************************************
 
 // - - - - - - - - - - - - - - - - - - - -
 void EventDisplay::SetArc(bool isArc)

@@ -42,6 +42,7 @@
 #include "EDEvtMatch.hh"
 #include "EDProcessed.hh"
 #include "EDCherenkov.hh"
+#include "EDSim.hh"
 
 
 class EventDisplay : public TGMainFrame {
@@ -53,7 +54,8 @@ public:
   {
     kRaw = 0,
     kProcessed = 1,
-    kEvtMatch = 2
+    kEvtMatch = 2,
+    kSimulation = 3
   };
 
 
@@ -69,6 +71,7 @@ public:
   void Do2D(Int_t id);
 
   void SwapRawProcessed(Int_t cSwitch);
+  void Set2D(Bool_t is2D);
 
   // ---- Hit Map ----
   void ResetHitMap();
@@ -101,6 +104,29 @@ private:
 
   // ----------------------------
 
+  // ----- Plotting -------------
+ 
+  bool  bHMvs3D = false;
+  TGNumberEntry *fPhi[2];
+  TGNumberEntry *fZ[2]; 
+
+  // Hit Map 
+  TGVButtonGroup *f3DType;
+  TGLabel *lZSlice;
+  TGNumberEntry *fZSlice;
+  TGVButtonGroup *fHitMapGroup;
+  std::shared_ptr<EDHitMap> fHitMap{nullptr}; 
+  ECanvas m_datatype = kProcessed;
+  bool  bHitMapDrawn = false;
+
+  TGCheckButton *fIsArc;
+  bool bIsArc = false;
+
+  bool bIs2D = false; 
+
+  // ----------------------------
+
+
   // Mapping Info
   TGTextEntry   *fMapDir;
   TGTextEntry   *fMapName;
@@ -108,30 +134,16 @@ private:
   TGNumberEntry *fAnodes;
 
   // Event display
-  std::shared_ptr<EDProcessed> fDisplay;
+  std::shared_ptr<EDHitMap> fDisplay;
   std::shared_ptr<EDCherenkov> fCherenkov;
   TGStatusBar *fStatus[2];
 
-  // ----- Plotting -------------
 
-  TGNumberEntry *fPhi[2];
-  TGNumberEntry *fZ[2]; 
-
-  TGCheckButton *fIsArc;
-  bool bIsArc = false;
-
-  // ----------------------------
 
   // Cherenkov info
   TGNumberEntry *fCherCuts[2];
   TGCheckButton *fCherShow;
   TLine *fCherLine[2] = {nullptr};
-
-  // Hit Map 
-  TGNumberEntry *fZSlice;
-  std::shared_ptr<EDHitMap> fHitMap{nullptr}; 
-  ECanvas m_datatype = kProcessed;
-  bool  bHitMapDrawn = false;
 
 
 

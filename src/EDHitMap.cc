@@ -49,7 +49,7 @@ EDHitMap::EDHitMap(const char *infile, const char *intree, int FERS)
 // - - - - - - - - - - - - - - - - - - - - 
 EDHitMap::~EDHitMap()
 {
-    delete EventDisplay;
+    delete m_EventDisplay;
 }
 // - - - - - - - - - - - - - - - - - - - - 
 
@@ -107,7 +107,8 @@ TH2Poly* EDHitMap::CreateArcHist(std::string histName)
 
 
 // - - - - - - - - - - - - - - - - - - - - 
-void EDHitMap::FillArc(TH2Poly* h2, double phiBin, double rBin, double weight) {
+void EDHitMap::FillArc(TH2Poly* h2, double phiBin, double rBin, double weight) 
+{
 
     // Calculate the radius (R) for the given rBin
     double rMin = radiusMin + rBin * (radiusMax - radiusMin) / nBinsRadius;
@@ -120,11 +121,27 @@ void EDHitMap::FillArc(TH2Poly* h2, double phiBin, double rBin, double weight) {
     double phi = (phiMin + phiMax) / 2;  // Use the middle of the bin for phi
 
     // Convert polar coordinates (R, phi) to Cartesian coordinates (x, y)
-    double x = -R * TMath::Cos(phi);
+    double x = (-R+1) * TMath::Cos(phi);
     double y = R * TMath::Sin(phi);
 
     h2->Fill(x, y, weight);
 }
+// - - - - - - - - - - - - - - - - - - - - 
+
+//**********************************************************
+
+
+
+//**********************************************************
+//***** HISTOGRAMS *****************************************
+
+// - - - - - - - - - - - - - - - - - - - - 
+/*void EDHitMap::SetVectors(std::vector<TH2D*> &hitmap, 
+                          std::vector<TH2Poly*> &ArcMap)
+{
+    char const *range[5] = {"T_{0d}","T_{0u}","T_{1}","T_{2}","T_{3}"};
+
+}*/
 // - - - - - - - - - - - - - - - - - - - - 
 
 //**********************************************************
@@ -144,15 +161,26 @@ void EDHitMap::LoadMap(std::string inMap, std::string mapDir, EMapYear year)
         m_coordMap = MappingCordAnode( (mapDir + inMap) .c_str() );
         break;
     case k2024:
-        // The inMap here are used for the Concentrator map 
-        // and mapDir for the Janus
-        m_maps = CreateMap(inMap.c_str(), mapDir.c_str());
+        m_maps = CreateMap( (mapDir + "IC-Concentrator.txt") .c_str(), 
+                            (mapDir + inMap) .c_str());
+        break;
+    case kMC: 
         break;
     default:
-        m_maps = CreateMap(inMap.c_str(), mapDir.c_str());
+        m_maps = CreateMap( (mapDir + "IC-Concentrator.txt") .c_str(), 
+                            (mapDir + inMap) .c_str());
+        break;
     }
 }
 // - - - - - - - - - - - - - - - - - - - - 
 
 //**********************************************************
+
+
+// This is not how it should work but it seems to have fixed a compile error
+// Sort this out later... --JM
+void EDHitMap::SetBranches()
+{}
+void EDHitMap::FillHist(int evnt)
+{}
 

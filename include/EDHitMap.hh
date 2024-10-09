@@ -30,6 +30,7 @@ public:
     {
         k2023 = 0,
         k2024 = 1,
+        kMC = 2
     };
     // --------------------------
 
@@ -54,7 +55,7 @@ public:
     std::vector<TH2D*>    GetHitMap() { return m_HitMap; };
     std::vector<TH2Poly*> GetArc() { return m_ArcMap; };
 
-    TH3D *GetEventDisplay() { return EventDisplay; };
+    TH3D *GetEventDisplay() { return m_EventDisplay; };
     // ---------------------------
 
 
@@ -64,8 +65,16 @@ public:
     // ---------------------------
 
 
+    void SetBranches() override;
+    void FillHist(int inEvent) override;
+
 
 protected:
+
+    // ----- Int. Methods --------
+    void SetVectors(std::vector<TH2D*>    &hitmap,
+                    std::vector<TH2Poly*> &ArcMap);
+    // ---------------------------
 
     // ----- Draw arc ------------
     const int nBinsRadius = 5;          // Number of radial bins
@@ -96,7 +105,7 @@ protected:
     std::vector<TH2Poly*> m_ArcMap = {nullptr};
 
     // 3D display
-    TH3D *EventDisplay = new TH3D();
+    TH3D *m_EventDisplay = new TH3D();
     // ---------------------------
 
 };

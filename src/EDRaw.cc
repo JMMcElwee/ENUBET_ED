@@ -74,12 +74,20 @@ void EDRaw::FillHist(int evnt)
     //long int entryBounds[2] = {0,(long int)m_curTree->GetEntries()};
     long int entryBounds[2] = {0,50000};
 
+    std::cout << evnt << std::endl;
+
     if (evnt >= 0) 
     { 
         entryBounds[0] = evnt; 
         entryBounds[1] = evnt + 1;
     }
 
+    int Z[2] = {0, 14};
+    int Phi[2] = {-8, 17};
+    TH3D *ED3D = new TH3D("EvtMatch 3D",";Z;#phi;",
+                          Z[1]-Z[0]+1, Z[0]-0.5, Z[1]+0.5,
+                          Phi[1]-Phi[0]+1, Phi[0]-0.5, Phi[1]+0.5,
+                          5, -0.5, 4.5);
     std::vector<TH2D*> hitmap;
     std::vector<TH2Poly*> ArcMap;
     char const *range[5] = {"T_{0d}","T_{0u}","T_{1}","T_{2}","T_{3}"};
@@ -111,10 +119,11 @@ void EDRaw::FillHist(int evnt)
 
             int TVal = m_maps.AnodeCoord[std::vector<int>{(int)m_board,anode}][0];
             int PhiVal = m_maps.AnodeCoord[std::vector<int>{(int)m_board,anode}][1];
+            int ZVal = m_maps.AnodeCoord[std::vector<int>{(int)m_board,anode}][2];
 
             int ZLayer = 0;
             for (TH2D* histogram : hitmap) {
-                if (m_maps.AnodeCoord[std::vector<int>{(int)m_board,anode}][2] == ZLayer)
+                if (ZVal == ZLayer)
                 {
                     if (m_HG_raw[anode] > 0 && m_LG_raw[anode] > 0){
                         if (TVal <= 1){
@@ -131,11 +140,18 @@ void EDRaw::FillHist(int evnt)
                 ZLayer++;
             }
 
+            if (TVal <= 1 && m_HG_raw[anode] > 0) 
+                ED3D->Fill(ZVal, PhiVal, TVal, m_HG_raw[anode]);
+            else if (m_LG_raw[anode] > 0)
+                ED3D->Fill(ZVal, PhiVal, TVal, m_LG_raw[anode]);
+
             }
     }
 
     m_HitMap = hitmap;
     m_ArcMap = ArcMap;
+    //ED3D->Clone(*m_EventDisplay);
+    m_EventDisplay=ED3D;
 
 }
 // - - - - - - - - - - - - - - - - - - - - 
