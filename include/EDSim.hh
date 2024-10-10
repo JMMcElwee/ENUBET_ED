@@ -23,7 +23,11 @@ private:
     vector<int> *m_r = nullptr,
                 *m_phi = nullptr, 
                 *m_z = nullptr;
-    vector<double> *m_EDep = nullptr;
+    vector<int> *m_phit0 = nullptr, 
+                *m_zt0 = nullptr;
+    vector<double> *m_EDep = nullptr,
+                   *m_EDepT0Up = nullptr, 
+                   *m_EDepT0Dw = nullptr;
 
 
 

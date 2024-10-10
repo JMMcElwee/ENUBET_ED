@@ -148,10 +148,12 @@ void EDRaw::FillHist(int evnt)
             }
     }
 
+    ED3D->GetZaxis()->SetNdivisions(-5);
+    for (int i=0;i<5;i++) ED3D->GetZaxis()->SetBinLabel(i+1,range[i]);
+
     m_HitMap = hitmap;
     m_ArcMap = ArcMap;
-    //ED3D->Clone(*m_EventDisplay);
-    m_EventDisplay=ED3D;
+    ED3D->Copy(*m_EventDisplay);
 
 }
 // - - - - - - - - - - - - - - - - - - - - 

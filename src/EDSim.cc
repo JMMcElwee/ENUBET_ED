@@ -64,7 +64,13 @@ void EDSim::SetBranches()
     m_curTree->SetBranchAddress("caloR",   &m_r);
     m_curTree->SetBranchAddress("caloPhi", &m_phi);
     m_curTree->SetBranchAddress("caloZ",   &m_z);
+
+    m_curTree->SetBranchAddress("t0Phi", &m_phit0);
+    m_curTree->SetBranchAddress("t0Z",   &m_zt0);
+
     m_curTree->SetBranchAddress("ucmEDep", &m_EDep);
+    m_curTree->SetBranchAddress("t0UpEDep", &m_EDepT0Up);
+    m_curTree->SetBranchAddress("t0DwEDep", &m_EDepT0Dw);
 }
 // - - - - - - - - - - - - - - - - - - - - 
 
@@ -99,28 +105,46 @@ void EDSim::FillHist(int evnt)
 
         ArcMap.push_back(CreateArcHist((HistName+" Arc").c_str()));
     }
-    
+
 
     for (int entry = entryBounds[0]; entry < entryBounds[1]; entry++)
     {
         m_curTree->GetEntry(entry);
 
-        for (int hit = 0; hit < m_EDep->size(); hit++) {
-
-            int ZLayer = 0;
-            for (TH2D* histogram : hitmap) 
+        int ZLayer = 0;
+        for (TH2D* histogram : hitmap)
+        {
+            // Calorimeter energy deposity
+            for (int hit = 0; hit < m_EDep->size(); hit++)
             {
                 if (m_z->at(hit) == ZLayer) {
                     histogram->Fill(m_phi->at(hit), m_r->at(hit)+2, m_EDep->at(hit));
                     FillArc(ArcMap.at(m_z->at(hit)), m_phi->at(hit), m_r->at(hit)+2, m_EDep->at(hit));
                     ED3D->Fill(m_z->at(hit),  m_phi->at(hit), m_r->at(hit)+2, m_EDep->at(hit));
                 }
-                ZLayer++;
-            }    
+            }
 
+            // T0 deposits
+            for (int hit = 0; hit < m_EDepT0Up->size(); hit++)
+            {
+                if (m_zt0->at(hit) == ZLayer) {
+                    histogram->Fill(m_phit0->at(hit), 0., m_EDepT0Dw->at(hit));
+                    FillArc(ArcMap.at(m_zt0->at(hit)), m_phit0->at(hit), 0., m_EDepT0Dw->at(hit));
+                    ED3D->Fill(m_zt0->at(hit),  m_phit0->at(hit), 0., m_EDepT0Dw->at(hit));
+
+                    histogram->Fill(m_phit0->at(hit), 1., m_EDepT0Up->at(hit));
+                    FillArc(ArcMap.at(m_zt0->at(hit)), m_phit0->at(hit), 1., m_EDepT0Up->at(hit));
+                    ED3D->Fill(m_zt0->at(hit),  m_phit0->at(hit), 1., m_EDepT0Up->at(hit));
+                }
+            }
+
+            ZLayer++;
         }
         
     }
+
+    ED3D->GetZaxis()->SetNdivisions(-5);
+    for (int i=0;i<5;i++) ED3D->GetZaxis()->SetBinLabel(i+1,range[i]);
  
     m_HitMap = hitmap;
     m_ArcMap = ArcMap;
