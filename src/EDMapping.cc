@@ -1,6 +1,27 @@
+/* ============ EDMAPPING ============ *
+ * Author: J. McElwee                  *
+ * Created: 11-08-2024                 *
+ * Email: mcelwee@lp2ib.in2p3.fr       *
+ *                                     *
+ * This was written by L. Halic for    *
+ * the 2023 testbeam. Due to linker    *
+ * issues on an M1 mac, this had to be *
+ * included within the build rather    * 
+ * than being linked to.               *
+ *                                     *
+ * =================================== */
+
+
 #include "EDMapping.hh"
 
+//**********************************************************
+//***** MAPS ***********************************************
 
+
+// - - - - - - - - - - - - - - - - - - - - 
+/*
+  Create main maps between anodes and coords
+*/
 std::map<std::vector<int>, std::vector<int>> MappingAnodeCord(TString fileName) {
 
   std::ifstream infile(fileName);
@@ -51,8 +72,12 @@ std::map<std::vector<int>, std::vector<int>> MappingAnodeCord(TString fileName) 
 
   return myMap;
 }
+// - - - - - - - - - - - - - - - - - - - - 
 
-
+// - - - - - - - - - - - - - - - - - - - - 
+/*
+  Create main maps between anodes and coords
+*/
 std::map<std::vector<int>, std::vector<int>> MappingCordAnode(TString fileName) {
 
   std::ifstream infile(fileName);
@@ -101,8 +126,13 @@ std::map<std::vector<int>, std::vector<int>> MappingCordAnode(TString fileName) 
 
   return myMap;
 }
+// - - - - - - - - - - - - - - - - - - - - 
 
-
+// - - - - - - - - - - - - - - - - - - - - 
+/*
+  Specifically used in 2023 for mapping 
+  digitisers to the coordinates. 
+*/
 std::map<int, std::vector<int>> MappingDigiCord(TString fileName) {
 
   std::ifstream infile(fileName);
@@ -147,8 +177,16 @@ std::map<int, std::vector<int>> MappingDigiCord(TString fileName) {
 
   return myMap;
 }
+// - - - - - - - - - - - - - - - - - - - - 
+
+//**********************************************************
 
 
+
+//**********************************************************
+//***** OUTPUT *********************************************
+
+// - - - - - - - - - - - - - - - - - - - - 
 void printMap(std::map<std::vector<int>, std::vector<int>> map) {
 
   for (auto elem = map.begin(); elem != map.end(); elem++) {
@@ -161,4 +199,7 @@ void printMap(std::map<std::vector<int>, std::vector<int>> map) {
   }
   return;
 }
+// - - - - - - - - - - - - - - - - - - - - 
+
+//**********************************************************
 

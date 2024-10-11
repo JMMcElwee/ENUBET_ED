@@ -23,6 +23,8 @@
 int main(int argc, char** argv)
 {
 
+  gErrorIgnoreLevel = kWarning;
+  
   TApplication theApp("App", &argc, argv);
 
   // Popup the GUI...

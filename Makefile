@@ -1,6 +1,7 @@
 INCDIR=./include
 SRCDIR=./src
 OBJDIR=./obj
+LIBDIR=./lib
 
 CXX=g++
 
@@ -25,18 +26,31 @@ SOURCES = $(shell find $(SRCDIR) -type f -name *.$(SRC_EXT))
 _OBJ = $(SOURCES:.cc=.o)
 OBJ = $(patsubst $(SRCDIR)/%,$(OBJDIR)/%,$(_OBJ))
 
-all: $(TARGET)
+all: CHECK_DIR $(TARGET)
 
-lib/$(DICT_CXX):
+CHECK_DIR:
+	@if [ ! -d "$(LIBDIR)" ]; then \
+		echo "Directory $(LIBDIR) does not exist. Creating it..."; \
+		mkdir -p $(LIBDIR); \
+	fi
+	@if [ ! -d "$(OBJDIR)" ]; then \
+		echo "Directory $(OBJDIR) does not exist. Creating it..."; \
+		mkdir -p $(OBJDIR); \
+	fi
+
+$(LIBDIR)/$(DICT_CXX):
 	rootcling -I$(INCDIR) -f $@ -c $(_DEPS) $(LINKDEF)
+	@if [ ! -f "$(TARGET)Dict_rdict.pcm" ]; then \
+		ln -s $(LIBDIR)/$(TARGET)Dict_rdict.pcm; \
+	fi
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.cc $(DEPS)
 	$(CXX) -c -o $@ $< $(CXXFLAGS)
 
-$(TARGET): $(OBJ) lib/$(DICT_CXX)
+$(TARGET): $(OBJ) $(LIBDIR)/$(DICT_CXX)
 	 $(CXX) $(CXXFLAGS) $(LDFLAGS) $(LIBS) $^ -o $@
 
 .PHONY: clean
 
 clean:
-	rm -f $(TARGET) lib/$(TARGET)Dict* $(OBJDIR)/*.o *~ core src/*~ $(INCDIR)/*~
+	rm -f $(TARGET) $(TARGET)Dict_rdict.pcm $(LIBDIR)/$(TARGET)Dict* $(OBJDIR)/*.o *~ core src/*~ $(INCDIR)/*~
